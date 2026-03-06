@@ -23,9 +23,7 @@ logger = logging.getLogger(__name__)
 # Retry 1: 60
 # Retry 2: 240
 # Retry 3: 960
-# Retry 4: 3840
-# Retry 5: 15360
-def task(retries=5, retry_delay=15, retry_backoff=4):
+def task(retries=3, retry_delay=15, retry_backoff=4):
     def deco(fn):
         @functools.wraps(fn)
         def inner(*args, **kwargs):
