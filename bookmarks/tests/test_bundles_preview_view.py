@@ -32,7 +32,7 @@ class BundlePreviewViewTestCase(TestCase, BookmarkFactoryMixin, HtmlTestMixin):
         )
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Found 1 bookmarks matching this bundle")
+        self.assertContains(response, "Found 1 bookmark matching this bundle")
         self.assertContains(response, bookmark1.title)
         self.assertNotContains(response, bookmark2.title)
         self.assertNotContains(response, bookmark3.title)
@@ -90,7 +90,7 @@ class BundlePreviewViewTestCase(TestCase, BookmarkFactoryMixin, HtmlTestMixin):
         response = self.client.get(reverse("linkding:bundles.preview"))
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Found 1 bookmarks matching this bundle")
+        self.assertContains(response, "Found 1 bookmark matching this bundle")
         self.assertContains(response, active_bookmark.title)
         self.assertNotContains(response, archived_bookmark.title)
 
@@ -103,7 +103,7 @@ class BundlePreviewViewTestCase(TestCase, BookmarkFactoryMixin, HtmlTestMixin):
             reverse("linkding:bundles.preview"),
             {"filter_unread": BookmarkBundle.FILTER_STATE_YES},
         )
-        self.assertContains(response, "Found 1 bookmarks matching this bundle")
+        self.assertContains(response, "Found 1 bookmark matching this bundle")
         self.assertContains(response, unread_bookmark.title)
         self.assertNotContains(response, read_bookmark.title)
 
@@ -112,7 +112,7 @@ class BundlePreviewViewTestCase(TestCase, BookmarkFactoryMixin, HtmlTestMixin):
             reverse("linkding:bundles.preview"),
             {"filter_unread": BookmarkBundle.FILTER_STATE_NO},
         )
-        self.assertContains(response, "Found 1 bookmarks matching this bundle")
+        self.assertContains(response, "Found 1 bookmark matching this bundle")
         self.assertNotContains(response, unread_bookmark.title)
         self.assertContains(response, read_bookmark.title)
 
@@ -134,7 +134,7 @@ class BundlePreviewViewTestCase(TestCase, BookmarkFactoryMixin, HtmlTestMixin):
             reverse("linkding:bundles.preview"),
             {"filter_shared": BookmarkBundle.FILTER_STATE_YES},
         )
-        self.assertContains(response, "Found 1 bookmarks matching this bundle")
+        self.assertContains(response, "Found 1 bookmark matching this bundle")
         self.assertContains(response, shared_bookmark.title)
         self.assertNotContains(response, unshared_bookmark.title)
 
@@ -143,7 +143,7 @@ class BundlePreviewViewTestCase(TestCase, BookmarkFactoryMixin, HtmlTestMixin):
             reverse("linkding:bundles.preview"),
             {"filter_shared": BookmarkBundle.FILTER_STATE_NO},
         )
-        self.assertContains(response, "Found 1 bookmarks matching this bundle")
+        self.assertContains(response, "Found 1 bookmark matching this bundle")
         self.assertNotContains(response, shared_bookmark.title)
         self.assertContains(response, unshared_bookmark.title)
 
@@ -173,6 +173,6 @@ class BundlePreviewViewTestCase(TestCase, BookmarkFactoryMixin, HtmlTestMixin):
         response = self.client.get(reverse("linkding:bundles.preview"))
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Found 1 bookmarks matching this bundle")
+        self.assertContains(response, "Found 1 bookmark matching this bundle")
         self.assertContains(response, own_bookmark.title)
         self.assertNotContains(response, other_bookmark.title)

@@ -1,4 +1,5 @@
 import contextlib
+from datetime import datetime
 
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -224,16 +225,8 @@ def _filter_bundle(query_set: QuerySet, bundle: BookmarkBundle) -> QuerySet:
             Exists(Bookmark.objects.filter(tag_conditions, id=OuterRef("id")))
         )
 
-    if bundle.filter_unread == BookmarkBundle.FILTER_STATE_YES:
-        query_set = query_set.filter(unread=True)
-    elif bundle.filter_unread == BookmarkBundle.FILTER_STATE_NO:
-        query_set = query_set.filter(unread=False)
-
-    if bundle.filter_shared == BookmarkBundle.FILTER_STATE_YES:
-        query_set = query_set.filter(shared=True)
-    elif bundle.filter_shared == BookmarkBundle.FILTER_STATE_NO:
-        query_set = query_set.filter(shared=False)
-
+    # filter_unread and filter_shared are applied via get_search_overrides()
+    # in _base_bookmarks_query
     return query_set
 
 
@@ -266,35 +259,78 @@ def _base_bookmarks_query(
     else:
         query_set = _filter_search_query(query_set, search.q, profile)
 
-    # Unread filter from bookmark search
-    if search.unread == BookmarkSearch.FILTER_UNREAD_YES:
+    # Effective params: use bundle overrides when viewing a bundle
+    overrides = (
+        search.bundle.get_search_overrides() if search.bundle else {}
+    )
+    effective_unread = overrides.get("unread", search.unread)
+    effective_shared = overrides.get("shared", search.shared)
+    effective_tagged = overrides.get("tagged", search.tagged)
+    effective_sort = overrides.get("sort", search.sort)
+    effective_date_filter_by = overrides.get(
+        "date_filter_by", search.date_filter_by
+    )
+    effective_date_filter_type = overrides.get(
+        "date_filter_type", search.date_filter_type
+    )
+    effective_date_filter_relative_string = overrides.get(
+        "date_filter_relative_string", search.date_filter_relative_string
+    )
+    effective_date_filter_start = overrides.get(
+        "date_filter_start", search.date_filter_start
+    )
+    effective_date_filter_end = overrides.get(
+        "date_filter_end", search.date_filter_end
+    )
+
+    # Unread filter
+    if effective_unread == BookmarkSearch.FILTER_UNREAD_YES:
         query_set = query_set.filter(unread=True)
-    elif search.unread == BookmarkSearch.FILTER_UNREAD_NO:
+    elif effective_unread == BookmarkSearch.FILTER_UNREAD_NO:
         query_set = query_set.filter(unread=False)
 
     # Shared filter
-    if search.shared == BookmarkSearch.FILTER_SHARED_SHARED:
+    if effective_shared == BookmarkSearch.FILTER_SHARED_SHARED:
         query_set = query_set.filter(shared=True)
-    elif search.shared == BookmarkSearch.FILTER_SHARED_UNSHARED:
+    elif effective_shared == BookmarkSearch.FILTER_SHARED_UNSHARED:
         query_set = query_set.filter(shared=False)
 
     # Tagged filter
-    if search.tagged == BookmarkSearch.FILTER_TAGGED_TAGGED:
+    if effective_tagged == BookmarkSearch.FILTER_TAGGED_TAGGED:
         query_set = query_set.filter(tags__isnull=False).distinct()
-    elif search.tagged == BookmarkSearch.FILTER_TAGGED_UNTAGGED:
+    elif effective_tagged == BookmarkSearch.FILTER_TAGGED_UNTAGGED:
         query_set = query_set.filter(tags__isnull=True)
 
     # Date filter
-    if search.date_filter_by != BookmarkSearch.FILTER_DATE_OFF:
-        start_date = search.date_filter_start
-        end_date = search.date_filter_end
+    if effective_date_filter_by != BookmarkSearch.FILTER_DATE_OFF:
+        if (
+            effective_date_filter_type == BookmarkSearch.FILTER_DATE_TYPE_RELATIVE
+            and effective_date_filter_relative_string
+        ):
+            start_date, end_date = BookmarkSearch.parse_relative_date_string(
+                effective_date_filter_relative_string
+            )
+        else:
+            start_date = effective_date_filter_start
+            end_date = effective_date_filter_end
+            # Parse ISO date strings from search_params (JSON)
+            if isinstance(start_date, str):
+                try:
+                    start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
+                except (ValueError, TypeError):
+                    start_date = None
+            if isinstance(end_date, str):
+                try:
+                    end_date = datetime.strptime(end_date, "%Y-%m-%d").date()
+                except (ValueError, TypeError):
+                    end_date = None
         if start_date and end_date:
-            if search.date_filter_by == BookmarkSearch.FILTER_DATE_BY_ADDED:
+            if effective_date_filter_by == BookmarkSearch.FILTER_DATE_BY_ADDED:
                 query_set = query_set.filter(
                     date_added__date__gte=start_date,
                     date_added__date__lte=end_date,
                 )
-            elif search.date_filter_by == BookmarkSearch.FILTER_DATE_BY_MODIFIED:
+            elif effective_date_filter_by == BookmarkSearch.FILTER_DATE_BY_MODIFIED:
                 query_set = query_set.filter(
                     date_modified__date__gte=start_date,
                     date_modified__date__lte=end_date,
@@ -306,8 +342,8 @@ def _base_bookmarks_query(
 
     # Sort
     if (
-        search.sort == BookmarkSearch.SORT_TITLE_ASC
-        or search.sort == BookmarkSearch.SORT_TITLE_DESC
+        effective_sort == BookmarkSearch.SORT_TITLE_ASC
+        or effective_sort == BookmarkSearch.SORT_TITLE_DESC
     ):
         # For the title, the resolved_title logic from the Bookmark entity needs
         # to be replicated as there is no corresponding database field
@@ -327,13 +363,13 @@ def _base_bookmarks_query(
         else:
             order_field = "effective_title"
 
-        if search.sort == BookmarkSearch.SORT_TITLE_ASC:
+        if effective_sort == BookmarkSearch.SORT_TITLE_ASC:
             query_set = query_set.order_by(order_field)
-        elif search.sort == BookmarkSearch.SORT_TITLE_DESC:
+        elif effective_sort == BookmarkSearch.SORT_TITLE_DESC:
             query_set = query_set.order_by(order_field).reverse()
-    elif search.sort == BookmarkSearch.SORT_ADDED_ASC:
+    elif effective_sort == BookmarkSearch.SORT_ADDED_ASC:
         query_set = query_set.order_by("date_added")
-    elif search.sort == BookmarkSearch.SORT_RANDOM:
+    elif effective_sort == BookmarkSearch.SORT_RANDOM:
         query_set = query_set.order_by("?")
     else:
         # Sort by date added, descending by default
@@ -428,6 +464,18 @@ def get_shared_tags_for_query(
     return Tag.objects.filter(conditions).filter(tag_conditions).distinct()
 
 
+# Relative date filter keywords supported in query string (!last_7_days, !today, etc.)
+RELATIVE_DATE_KEYWORDS = (
+    "today",
+    "yesterday",
+    "this_week",
+    "this_month",
+    "this_year",
+    "last_7_days",
+    "last_30_days",
+)
+
+
 def parse_query_string(query_string):
     # Sanitize query params
     if not query_string:
@@ -445,9 +493,17 @@ def parse_query_string(query_string):
     untagged = "!untagged" in keywords
     unread = "!unread" in keywords
 
+    # Date filter: !last_7_days, !today, !last_30_days, etc.
+    date_filter_relative_string = None
+    for kw in RELATIVE_DATE_KEYWORDS:
+        if f"!{kw}" in keywords:
+            date_filter_relative_string = kw
+            break
+
     return {
         "search_terms": search_terms,
         "tag_names": tag_names,
         "untagged": untagged,
         "unread": unread,
+        "date_filter_relative_string": date_filter_relative_string,
     }

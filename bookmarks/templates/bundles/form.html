@@ -15,6 +15,11 @@
   {% endformhelp %}
 </div>
 <div class="form-group">
+  {% trans "Tag status" as filter_tagged_label %}
+  {% formlabel form.filter_tagged filter_tagged_label %}
+  {% formfield form.filter_tagged %}
+</div>
+<div class="form-group bundle-tags-input" style="display:none">
   {% trans "Tags" as tags_label %}
   {% formlabel form.any_tags tags_label %}
   {% formfield form.any_tags has_help=True %}
@@ -23,20 +28,12 @@
   {% endformhelp %}
 </div>
 <div class="form-group">
-  {% trans "Required tags" as required_tags_label %}
-  {% formlabel form.all_tags required_tags_label %}
-  {% formfield form.all_tags has_help=True %}
-  {% formhelp form.all_tags %}
-    {% blocktrans %}All of these tags must be present in a bookmark to match.{% endblocktrans %}
-  {% endformhelp %}
+  {% formlabel form.bundle_date_filter_by _("Date filter") %}
+  {% formfield form.bundle_date_filter_by %}
 </div>
-<div class="form-group">
-  {% trans "Excluded tags" as excluded_tags_label %}
-  {% formlabel form.excluded_tags excluded_tags_label %}
-  {% formfield form.excluded_tags has_help=True %}
-  {% formhelp form.excluded_tags %}
-    {% blocktrans %}None of these tags must be present in a bookmark to match.{% endblocktrans %}
-  {% endformhelp %}
+<div class="form-group bundle-date-relative" style="display:none">
+  {% formlabel form.bundle_date_filter_relative_string _("Relative period") %}
+  {% formfield form.bundle_date_filter_relative_string %}
 </div>
 <div class="form-group">
   {% trans "Reading State" as reading_state_label %}
@@ -88,7 +85,7 @@
         const inputs = bundleForm.querySelectorAll('input[type="text"]:not([name="csrfmiddlewaretoken"]), textarea, select');
 
         inputs.forEach(input => {
-          if (input.name && input.value.trim()) {
+          if (input.name && input.value && input.value.trim()) {
             params.set(input.name, input.value.trim());
           }
         });
@@ -99,5 +96,32 @@
     }
 
     bundleForm.addEventListener('input', scheduleUpdate);
+    bundleForm.addEventListener('change', scheduleUpdate);
+
+    // Toggle tag input visibility when "Has tags" is selected
+    const filterTaggedSelect = bundleForm.querySelector('[name="filter_tagged"]');
+    const tagsInputDiv = bundleForm.querySelector('.bundle-tags-input');
+    function toggleTagsInput() {
+      if (tagsInputDiv) {
+        tagsInputDiv.style.display = filterTaggedSelect?.value === 'yes' ? '' : 'none';
+      }
+    }
+    if (filterTaggedSelect) {
+      filterTaggedSelect.addEventListener('change', toggleTagsInput);
+    }
+    toggleTagsInput();
+
+    // Toggle relative period visibility when date filter is set
+    const dateBySelect = bundleForm.querySelector('[name="bundle_date_filter_by"]');
+    const relativeDiv = bundleForm.querySelector('.bundle-date-relative');
+    function toggleDateFilterUI() {
+      if (relativeDiv) {
+        relativeDiv.style.display = dateBySelect?.value ? '' : 'none';
+      }
+    }
+    if (dateBySelect) {
+      dateBySelect.addEventListener('change', toggleDateFilterUI);
+    }
+    toggleDateFilterUI();
   })();
 </script>

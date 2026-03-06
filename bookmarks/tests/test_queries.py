@@ -2165,3 +2165,24 @@ class GetSharedTagsForQueryTestCase(TestCase, BookmarkFactoryMixin):
         )
         self.assertCountEqual(list(result), [python_tag])
         self.assertNotIn(other_tag, list(result))
+
+
+class ParseQueryStringTestCase(TestCase):
+    def test_parse_query_string_date_filter(self):
+        """parse_query_string extracts date filter from !last_7_days, !today, etc."""
+        result = queries.parse_query_string("tutorial !last_7_days")
+        self.assertEqual(result["search_terms"], ["tutorial"])
+        self.assertEqual(result["date_filter_relative_string"], "last_7_days")
+
+        result = queries.parse_query_string("!today")
+        self.assertEqual(result["search_terms"], [])
+        self.assertEqual(result["date_filter_relative_string"], "today")
+
+        result = queries.parse_query_string("foo #bar !last_30_days")
+        self.assertEqual(result["search_terms"], ["foo"])
+        self.assertEqual(result["tag_names"], ["bar"])
+        self.assertEqual(result["date_filter_relative_string"], "last_30_days")
+
+    def test_parse_query_string_no_date_filter(self):
+        result = queries.parse_query_string("tutorial !untagged")
+        self.assertIsNone(result["date_filter_relative_string"])

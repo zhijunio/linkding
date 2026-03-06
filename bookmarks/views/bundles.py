@@ -49,7 +49,13 @@ def _handle_edit(request: HttpRequest, template: str, bundle: BookmarkBundle = N
             if parsed["search_terms"]:
                 initial_data["search"] = " ".join(parsed["search_terms"])
             if parsed["tag_names"]:
-                initial_data["all_tags"] = " ".join(parsed["tag_names"])
+                initial_data["any_tags"] = " ".join(parsed["tag_names"])
+                initial_data["filter_tagged"] = "yes"
+            if parsed.get("date_filter_relative_string"):
+                initial_data["bundle_date_filter_by"] = "added"
+                initial_data["bundle_date_filter_relative_string"] = parsed[
+                    "date_filter_relative_string"
+                ]
 
     form = BookmarkBundleForm(form_data, instance=bundle, initial=initial_data)
 

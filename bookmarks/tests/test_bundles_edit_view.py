@@ -16,9 +16,8 @@ class BundleEditViewTestCase(TestCase, BookmarkFactoryMixin):
         form_data = {
             "name": "Test Bundle",
             "search": "test search",
+            "filter_tagged": "yes",
             "any_tags": "tag1 tag2",
-            "all_tags": "required-tag",
-            "excluded_tags": "excluded-tag",
             "filter_unread": BookmarkBundle.FILTER_STATE_YES,
             "filter_shared": BookmarkBundle.FILTER_STATE_NO,
         }
@@ -39,8 +38,8 @@ class BundleEditViewTestCase(TestCase, BookmarkFactoryMixin):
         self.assertEqual(bundle.name, updated_data["name"])
         self.assertEqual(bundle.search, updated_data["search"])
         self.assertEqual(bundle.any_tags, updated_data["any_tags"])
-        self.assertEqual(bundle.all_tags, updated_data["all_tags"])
-        self.assertEqual(bundle.excluded_tags, updated_data["excluded_tags"])
+        self.assertEqual(bundle.all_tags, "")
+        self.assertEqual(bundle.excluded_tags, "")
         self.assertEqual(bundle.filter_unread, updated_data["filter_unread"])
         self.assertEqual(bundle.filter_shared, updated_data["filter_shared"])
 
@@ -49,8 +48,6 @@ class BundleEditViewTestCase(TestCase, BookmarkFactoryMixin):
             name="Test Bundle",
             search="test search terms",
             any_tags="tag1 tag2 tag3",
-            all_tags="required-tag all-tag",
-            excluded_tags="excluded-tag banned-tag",
             filter_unread=BookmarkBundle.FILTER_STATE_YES,
             filter_shared=BookmarkBundle.FILTER_STATE_NO,
         )
@@ -82,22 +79,6 @@ class BundleEditViewTestCase(TestCase, BookmarkFactoryMixin):
             f"""
                 <ld-tag-autocomplete input-name="any_tags" input-value="{bundle.any_tags}"
                 input-aria-describedby="id_any_tags_help" input-id="id_any_tags">
-            """,
-            html,
-        )
-
-        self.assertInHTML(
-            f"""
-                <ld-tag-autocomplete input-name="all_tags" input-value="{bundle.all_tags}"
-                input-aria-describedby="id_all_tags_help" input-id="id_all_tags">
-            """,
-            html,
-        )
-
-        self.assertInHTML(
-            f"""
-                <ld-tag-autocomplete input-name="excluded_tags" input-value="{bundle.excluded_tags}"
-                input-aria-describedby="id_excluded_tags_help" input-id="id_excluded_tags">
             """,
             html,
         )
@@ -163,10 +144,10 @@ class BundleEditViewTestCase(TestCase, BookmarkFactoryMixin):
         bookmark1 = self.setup_bookmark(tags=[bundle_tag])
         bookmark2 = self.setup_bookmark()
         bookmark3 = self.setup_bookmark()
-        bundle = self.setup_bundle(name="Test Bundle", all_tags=bundle_tag.name)
+        bundle = self.setup_bundle(name="Test Bundle", any_tags=bundle_tag.name)
 
         response = self.client.get(reverse("linkding:bundles.edit", args=[bundle.id]))
-        self.assertContains(response, "Found 1 bookmarks matching this bundle")
+        self.assertContains(response, "Found 1 bookmark matching this bundle")
         self.assertContains(response, bookmark1.title)
         self.assertNotContains(response, bookmark2.title)
         self.assertNotContains(response, bookmark3.title)
@@ -177,20 +158,19 @@ class BundleEditViewTestCase(TestCase, BookmarkFactoryMixin):
         bookmark1 = self.setup_bookmark(tags=[initial_tag])
         bookmark2 = self.setup_bookmark(tags=[updated_tag])
         bookmark3 = self.setup_bookmark()
-        bundle = self.setup_bundle(name="Test Bundle", all_tags=initial_tag.name)
+        bundle = self.setup_bundle(name="Test Bundle", any_tags=initial_tag.name)
 
         form_data = {
             "name": "",
             "search": "",
-            "any_tags": "",
-            "all_tags": updated_tag.name,
-            "excluded_tags": "",
+            "filter_tagged": "yes",
+            "any_tags": updated_tag.name,
         }
         response = self.client.post(
             reverse("linkding:bundles.edit", args=[bundle.id]), form_data
         )
         self.assertIn(
-            "Found 1 bookmarks matching this bundle", response.content.decode()
+            "Found 1 bookmark matching this bundle", response.content.decode()
         )
         self.assertNotIn(bookmark1.title, response.content.decode())
         self.assertIn(bookmark2.title, response.content.decode())

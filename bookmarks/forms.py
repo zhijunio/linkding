@@ -214,18 +214,62 @@ class TagMergeForm(forms.Form):
 
 
 class BookmarkBundleForm(forms.ModelForm):
+    FILTER_TAGGED_CHOICES = [
+        ("off", _("All")),
+        ("yes", _("Has tags")),
+        ("no", _("No tags")),
+    ]
+    BUNDLE_DATE_BY_CHOICES = [
+        ("", _("All")),
+        (BookmarkSearch.FILTER_DATE_BY_ADDED, _("Added")),
+        (BookmarkSearch.FILTER_DATE_BY_MODIFIED, _("Modified")),
+    ]
+    BUNDLE_DATE_RELATIVE_CHOICES = [
+        ("", "--"),
+        ("today", _("Today")),
+        ("yesterday", _("Yesterday")),
+        ("this_week", _("This week")),
+        ("this_month", _("This month")),
+        ("this_year", _("This year")),
+        ("last_7_days", _("Last 7 days")),
+        ("last_30_days", _("Last 30 days")),
+    ]
+
     name = forms.CharField(max_length=256, widget=FormInput)
     search = forms.CharField(max_length=256, required=False, widget=FormInput)
+    filter_tagged = forms.ChoiceField(
+        choices=FILTER_TAGGED_CHOICES,
+        required=False,
+        widget=FormSelect,
+    )
     any_tags = forms.CharField(required=False, widget=TagAutocomplete)
-    all_tags = forms.CharField(required=False, widget=TagAutocomplete)
-    excluded_tags = forms.CharField(required=False, widget=TagAutocomplete)
+    bundle_date_filter_by = forms.ChoiceField(
+        choices=BUNDLE_DATE_BY_CHOICES,
+        required=False,
+        widget=FormSelect,
+    )
+    bundle_date_filter_relative_string = forms.ChoiceField(
+        required=False,
+        choices=BUNDLE_DATE_RELATIVE_CHOICES,
+        widget=forms.Select(attrs={"class": "form-select form-select-sm"}),
+    )
+    BUNDLE_FILTER_UNREAD_CHOICES = [
+        (BookmarkBundle.FILTER_STATE_OFF, _("All")),
+        (BookmarkBundle.FILTER_STATE_YES, _("Unread")),
+        (BookmarkBundle.FILTER_STATE_NO, _("Read")),
+    ]
+    BUNDLE_FILTER_SHARED_CHOICES = [
+        (BookmarkBundle.FILTER_STATE_OFF, _("All")),
+        (BookmarkBundle.FILTER_STATE_YES, _("Shared")),
+        (BookmarkBundle.FILTER_STATE_NO, _("Unshared")),
+    ]
     filter_unread = forms.ChoiceField(
-        choices=BookmarkBundle.FILTER_UNREAD_CHOICES,
+        choices=BUNDLE_FILTER_UNREAD_CHOICES,
         required=False,
         widget=FormSelect,
     )
     filter_shared = forms.ChoiceField(
-        choices=BookmarkBundle.FILTER_SHARED_CHOICES,
+        choices=BUNDLE_FILTER_SHARED_CHOICES,
         required=False,
         widget=FormSelect,
     )
@@ -235,16 +279,69 @@ class BookmarkBundleForm(forms.ModelForm):
         fields = [
             "name",
             "search",
-            "any_tags",
-            "all_tags",
-            "excluded_tags",
             "filter_unread",
             "filter_shared",
         ]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs, error_class=FormErrorList)
+        if self.instance and self.instance.pk:
+            params = self.instance.search_params or {}
+            if params.get("tagged") == BookmarkSearch.FILTER_TAGGED_UNTAGGED:
+                self.fields["filter_tagged"].initial = "no"
+                self.fields["any_tags"].initial = ""
+            else:
+                tags_value = self.instance.any_tags or self.instance.all_tags
+                self.fields["filter_tagged"].initial = "yes" if tags_value else "off"
+                self.fields["any_tags"].initial = tags_value or ""
+            self.fields["bundle_date_filter_by"].initial = params.get(
+                "date_filter_by", ""
+            )
+            self.fields["bundle_date_filter_relative_string"].initial = params.get(
+                "date_filter_relative_string", ""
+            )
+        else:
+            self.fields["filter_tagged"].initial = self.initial.get(
+                "filter_tagged", "off"
+            )
+            self.fields["any_tags"].initial = self.initial.get("any_tags", "")
+            self.fields["bundle_date_filter_by"].initial = self.initial.get(
+                "bundle_date_filter_by", ""
+            )
+            self.fields["bundle_date_filter_relative_string"].initial = self.initial.get(
+                "bundle_date_filter_relative_string", ""
+            )
 
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        filter_tagged = self.cleaned_data.get("filter_tagged")
+        if filter_tagged == "yes" and self.cleaned_data.get("any_tags"):
+            instance.any_tags = self.cleaned_data["any_tags"]
+        else:
+            instance.any_tags = ""
+        instance.all_tags = ""
+        instance.excluded_tags = ""
+        params = dict(instance.search_params) if instance.search_params else {}
+        if filter_tagged == "no":
+            params["tagged"] = BookmarkSearch.FILTER_TAGGED_UNTAGGED
+        else:
+            params.pop("tagged", None)
+        if self.cleaned_data.get("bundle_date_filter_by") and self.cleaned_data.get(
+            "bundle_date_filter_relative_string"
+        ):
+            params["date_filter_by"] = self.cleaned_data["bundle_date_filter_by"]
+            params["date_filter_type"] = BookmarkSearch.FILTER_DATE_TYPE_RELATIVE
+            params["date_filter_relative_string"] = self.cleaned_data[
+                "bundle_date_filter_relative_string"
+            ]
+        else:
+            params.pop("date_filter_by", None)
+            params.pop("date_filter_type", None)
+            params.pop("date_filter_relative_string", None)
+        instance.search_params = params
+        if commit:
+            instance.save()
+        return instance
 
 class BookmarkSearchForm(forms.Form):
     SORT_CHOICES = [

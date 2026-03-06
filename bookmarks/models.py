@@ -215,6 +215,7 @@ class BookmarkBundle(models.Model):
         blank=False,
         default=FILTER_STATE_OFF,
     )
+    search_params = models.JSONField(default=dict, blank=True, null=False)
     order = models.IntegerField(null=False, default=0)
     date_created = models.DateTimeField(auto_now_add=True, null=False)
     date_modified = models.DateTimeField(auto_now=True, null=False)
@@ -222,6 +223,18 @@ class BookmarkBundle(models.Model):
 
     def __str__(self):
         return self.name
+
+    def get_search_overrides(self) -> dict:
+        """Return effective search params when viewing this bundle.
+        Merges search_params with filter_unread/filter_shared for backward compat.
+        """
+        params = dict(self.search_params) if self.search_params else {}
+        # Backward compat: filter_unread/filter_shared override when not in search_params
+        if "unread" not in params and self.filter_unread != self.FILTER_STATE_OFF:
+            params["unread"] = self.filter_unread
+        if "shared" not in params and self.filter_shared != self.FILTER_STATE_OFF:
+            params["shared"] = self.filter_shared
+        return params
 
 
 class BookmarkSearch:
