@@ -268,6 +268,15 @@ class BookmarkSearchForm(forms.Form):
         (BookmarkSearch.FILTER_TAGGED_TAGGED, "Tagged"),
         (BookmarkSearch.FILTER_TAGGED_UNTAGGED, "Untagged"),
     ]
+    FILTER_DATE_BY_CHOICES = [
+        (BookmarkSearch.FILTER_DATE_OFF, "Off"),
+        (BookmarkSearch.FILTER_DATE_BY_ADDED, "Added"),
+        (BookmarkSearch.FILTER_DATE_BY_MODIFIED, "Modified"),
+    ]
+    FILTER_DATE_TYPE_CHOICES = [
+        (BookmarkSearch.FILTER_DATE_TYPE_ABSOLUTE, "Absolute"),
+        (BookmarkSearch.FILTER_DATE_TYPE_RELATIVE, "Relative"),
+    ]
 
     q = forms.CharField()
     user = forms.ChoiceField(required=False, widget=FormSelect)
@@ -278,6 +287,33 @@ class BookmarkSearchForm(forms.Form):
     tagged = forms.ChoiceField(choices=FILTER_TAGGED_CHOICES, widget=forms.RadioSelect)
     modified_since = forms.CharField(required=False)
     added_since = forms.CharField(required=False)
+    date_filter_by = forms.ChoiceField(
+        choices=FILTER_DATE_BY_CHOICES, widget=forms.RadioSelect
+    )
+    date_filter_type = forms.ChoiceField(
+        choices=FILTER_DATE_TYPE_CHOICES, widget=forms.RadioSelect
+    )
+    DATE_RELATIVE_CHOICES = [
+        ("", "--"),
+        ("today", "Today"),
+        ("yesterday", "Yesterday"),
+        ("this_week", "This week"),
+        ("this_month", "This month"),
+        ("this_year", "This year"),
+        ("last_7_days", "Last 7 days"),
+        ("last_30_days", "Last 30 days"),
+    ]
+    date_filter_relative_string = forms.ChoiceField(
+        required=False,
+        choices=DATE_RELATIVE_CHOICES,
+        widget=forms.Select(attrs={"class": "form-select form-select-sm"}),
+    )
+    date_filter_start = forms.DateField(
+        required=False, widget=forms.DateInput(attrs={"type": "date"})
+    )
+    date_filter_end = forms.DateField(
+        required=False, widget=forms.DateInput(attrs={"type": "date"})
+    )
 
     def __init__(
         self,
@@ -296,8 +332,11 @@ class BookmarkSearchForm(forms.Form):
             self.fields["user"].choices = user_choices
 
         for param in search.params:
-            # set initial values for modified params
-            value = search.__dict__.get(param)
+            if param in ("date_filter_start", "date_filter_end"):
+                value = getattr(search, param)
+                value = value.isoformat() if hasattr(value, "isoformat") else value
+            else:
+                value = search.__dict__.get(param)
             if isinstance(value, models.Model):
                 self.fields[param].initial = value.id
             else:

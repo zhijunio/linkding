@@ -1,7 +1,10 @@
 import binascii
+import calendar
 import hashlib
 import logging
 import os
+import re
+from datetime import date, datetime, timedelta
 
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -240,6 +243,13 @@ class BookmarkSearch:
     FILTER_TAGGED_TAGGED = "yes"
     FILTER_TAGGED_UNTAGGED = "no"
 
+    FILTER_DATE_OFF = "off"
+    FILTER_DATE_BY_ADDED = "added"
+    FILTER_DATE_BY_MODIFIED = "modified"
+
+    FILTER_DATE_TYPE_ABSOLUTE = "absolute"
+    FILTER_DATE_TYPE_RELATIVE = "relative"
+
     params = [
         "q",
         "user",
@@ -250,8 +260,21 @@ class BookmarkSearch:
         "tagged",
         "modified_since",
         "added_since",
+        "date_filter_by",
+        "date_filter_type",
+        "date_filter_relative_string",
+        "date_filter_start",
+        "date_filter_end",
     ]
-    preferences = ["sort", "shared", "unread", "tagged"]
+    preferences = [
+        "sort",
+        "shared",
+        "unread",
+        "tagged",
+        "date_filter_by",
+        "date_filter_type",
+        "date_filter_relative_string",
+    ]
     defaults = {
         "q": "",
         "user": "",
@@ -262,7 +285,53 @@ class BookmarkSearch:
         "tagged": FILTER_TAGGED_OFF,
         "modified_since": None,
         "added_since": None,
+        "date_filter_by": FILTER_DATE_OFF,
+        "date_filter_type": FILTER_DATE_TYPE_ABSOLUTE,
+        "date_filter_relative_string": None,
+        "date_filter_start": None,
+        "date_filter_end": None,
     }
+
+    @staticmethod
+    def parse_relative_date_string(date_filter_relative_string: str) -> tuple[date | None, date | None]:
+        if not date_filter_relative_string:
+            return None, None
+        today = date.today()
+        if date_filter_relative_string == "today":
+            return today, today
+        if date_filter_relative_string == "yesterday":
+            yesterday = today - timedelta(days=1)
+            return yesterday, yesterday
+        if date_filter_relative_string == "this_week":
+            days_since_monday = today.weekday()
+            monday = today - timedelta(days=days_since_monday)
+            sunday = monday + timedelta(days=6)
+            return monday, sunday
+        if date_filter_relative_string == "this_month":
+            first_day = today.replace(day=1)
+            _, last_day_num = calendar.monthrange(today.year, today.month)
+            last_day = today.replace(day=last_day_num)
+            return first_day, last_day
+        if date_filter_relative_string == "this_year":
+            first_day = today.replace(month=1, day=1)
+            last_day = today.replace(month=12, day=31)
+            return first_day, last_day
+        m = re.match(r"last_(\d+)_(day|week|month|year)s?", date_filter_relative_string)
+        if m:
+            value, unit = int(m.group(1)), m.group(2)
+            if unit == "day":
+                start = today - timedelta(days=value - 1)
+                return start, today
+            if unit == "week":
+                start = today - timedelta(days=value * 7 - 1)
+                return start, today
+            if unit == "month":
+                start = today - timedelta(days=value * 30 - 1)
+                return start, today
+            if unit == "year":
+                start = today - timedelta(days=value * 365 - 1)
+                return start, today
+        return None, None
 
     def __init__(
         self,
@@ -275,6 +344,11 @@ class BookmarkSearch:
         tagged: str = None,
         modified_since: str = None,
         added_since: str = None,
+        date_filter_by: str = None,
+        date_filter_type: str = None,
+        date_filter_relative_string: str = None,
+        date_filter_start=None,
+        date_filter_end=None,
         preferences: dict = None,
         request: any = None,
     ):
@@ -292,10 +366,62 @@ class BookmarkSearch:
         self.tagged = tagged or self.defaults["tagged"]
         self.modified_since = modified_since or self.defaults["modified_since"]
         self.added_since = added_since or self.defaults["added_since"]
+        self.date_filter_by = date_filter_by or self.defaults["date_filter_by"]
+        self.date_filter_type = date_filter_type or self.defaults["date_filter_type"]
+        self.date_filter_relative_string = (
+            date_filter_relative_string or self.defaults["date_filter_relative_string"]
+        )
+        self.__dict__["date_filter_start"] = date_filter_start or self.defaults["date_filter_start"]
+        self.__dict__["date_filter_end"] = date_filter_end or self.defaults["date_filter_end"]
+
+    @property
+    def date_filter_start(self) -> date | None:
+        if (
+            self.date_filter_type == self.FILTER_DATE_TYPE_RELATIVE
+            and self.date_filter_relative_string
+        ):
+            start, _ = self.parse_relative_date_string(self.date_filter_relative_string)
+            return start
+        val = self.__dict__.get("date_filter_start")
+        if isinstance(val, str):
+            try:
+                return datetime.strptime(val, "%Y-%m-%d").date()
+            except (ValueError, TypeError):
+                return None
+        return val
+
+    @property
+    def date_filter_end(self) -> date | None:
+        if (
+            self.date_filter_type == self.FILTER_DATE_TYPE_RELATIVE
+            and self.date_filter_relative_string
+        ):
+            _, end = self.parse_relative_date_string(self.date_filter_relative_string)
+            return end
+        val = self.__dict__.get("date_filter_end")
+        if isinstance(val, str):
+            try:
+                return datetime.strptime(val, "%Y-%m-%d").date()
+            except (ValueError, TypeError):
+                return None
+        return val
+
+    @date_filter_start.setter
+    def date_filter_start(self, value):
+        self.__dict__["date_filter_start"] = value
+
+    @date_filter_end.setter
+    def date_filter_end(self, value):
+        self.__dict__["date_filter_end"] = value
 
     def is_modified(self, param):
-        value = self.__dict__[param]
-        return value != self.defaults[param]
+        value = self.__dict__.get(param)
+        if (
+            self.date_filter_type == self.FILTER_DATE_TYPE_RELATIVE
+            and param in ("date_filter_start", "date_filter_end")
+        ):
+            return False
+        return value != self.defaults.get(param)
 
     @property
     def modified_params(self):
@@ -321,11 +447,15 @@ class BookmarkSearch:
     def query_params(self):
         query_params = {}
         for param in self.modified_params:
-            value = self.__dict__[param]
-            if isinstance(value, models.Model):
-                query_params[param] = value.id
+            if param in ("date_filter_start", "date_filter_end"):
+                value = getattr(self, param)
+                query_params[param] = value.isoformat() if value else ""
             else:
-                query_params[param] = value
+                value = self.__dict__.get(param)
+                if isinstance(value, models.Model):
+                    query_params[param] = value.id
+                else:
+                    query_params[param] = value
         return query_params
 
     @property

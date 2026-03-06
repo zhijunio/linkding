@@ -538,6 +538,36 @@ class QueriesBasicTestCase(TestCase, BookmarkFactoryMixin):
         )
         self.assertCountEqual(list(query), read_bookmarks)
 
+    def test_query_bookmarks_filter_by_date(self):
+        from datetime import date
+
+        # Create bookmarks with different dates
+        old_bookmark = self.setup_bookmark(title="old")
+        old_bookmark.date_added = timezone.datetime(2024, 1, 5, tzinfo=datetime.UTC)
+        old_bookmark.save()
+        mid_bookmark = self.setup_bookmark(title="mid")
+        mid_bookmark.date_added = timezone.datetime(2024, 1, 15, tzinfo=datetime.UTC)
+        mid_bookmark.save()
+        new_bookmark = self.setup_bookmark(title="new")
+        new_bookmark.date_added = timezone.datetime(2024, 1, 25, tzinfo=datetime.UTC)
+        new_bookmark.save()
+
+        # Filter by added date range (absolute)
+        search = BookmarkSearch(
+            date_filter_by=BookmarkSearch.FILTER_DATE_BY_ADDED,
+            date_filter_type=BookmarkSearch.FILTER_DATE_TYPE_ABSOLUTE,
+            date_filter_start=date(2024, 1, 10),
+            date_filter_end=date(2024, 1, 20),
+        )
+        query = queries.query_bookmarks(self.user, self.profile, search)
+        result_ids = {b.id for b in query}
+        self.assertEqual(result_ids, {mid_bookmark.id})
+
+        # Date filter off returns all
+        search = BookmarkSearch(date_filter_by=BookmarkSearch.FILTER_DATE_OFF)
+        query = queries.query_bookmarks(self.user, self.profile, search)
+        self.assertEqual(query.count(), 3)
+
     def test_query_bookmarks_filter_tagged(self):
         tag = self.setup_tag(name="test-tag")
         tagged_bookmarks = [

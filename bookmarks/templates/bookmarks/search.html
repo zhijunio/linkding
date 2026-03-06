@@ -9,7 +9,12 @@
                             user="{{ search.user }}"
                             shared="{{ search.shared }}"
                             unread="{{ search.unread }}"
-                            tagged="{{ search.tagged }}">
+                            tagged="{{ search.tagged }}"
+                            date-filter-by="{{ search.date_filter_by }}"
+                            date-filter-type="{{ search.date_filter_type }}"
+                            date-filter-start="{% if search.date_filter_start %}{{ search.date_filter_start|date:'Y-m-d' }}{% endif %}"
+                            date-filter-end="{% if search.date_filter_end %}{{ search.date_filter_end|date:'Y-m-d' }}{% endif %}"
+                            date-filter-relative-string="{{ search.date_filter_relative_string|default_if_none:'' }}">
     </ld-search-autocomplete>
     <input type="submit" value="Search" class="d-none">
     {% for hidden_field in search_form.hidden_fields %}{{ hidden_field }}{% endfor %}
@@ -28,7 +33,7 @@
         {% if 'sort' in preferences_form.editable_fields %}
           <div class="form-group">
             <label for="{{ preferences_form.sort.id_for_label }}"
-                   class="form-label{% if 'sort' in search.modified_params %} text-bold{% endif %}">Sort by</label>
+                   class="form-label">Sort by</label>
             {% formfield preferences_form.sort class='select-sm' %}
           </div>
         {% endif %}
@@ -37,7 +42,7 @@
                role="radiogroup"
                aria-labelledby="search-shared-label">
             <label id="search-shared-label"
-                   class="form-label{% if 'shared' in search.modified_params %} text-bold{% endif %}">
+                   class="form-label">
               Shared filter
             </label>
             {% for radio in preferences_form.shared %}
@@ -54,7 +59,7 @@
                role="radiogroup"
                aria-labelledby="search-unread-label">
             <label id="search-unread-label"
-                   class="form-label{% if 'unread' in search.modified_params %} text-bold{% endif %}">
+                   class="form-label">
               Unread filter
             </label>
             {% for radio in preferences_form.unread %}
@@ -71,7 +76,7 @@
                role="radiogroup"
                aria-labelledby="search-tagged-label">
             <label id="search-tagged-label"
-                   class="form-label{% if 'tagged' in search.modified_params %} text-bold{% endif %}">
+                   class="form-label">
               Tagged filter
             </label>
             {% for radio in preferences_form.tagged %}
@@ -82,6 +87,82 @@
               </label>
             {% endfor %}
           </div>
+        {% endif %}
+        {% if 'date_filter_by' in preferences_form.editable_fields %}
+          <div class="form-group radio-group"
+               role="radiogroup"
+               aria-labelledby="search-date-filter-label">
+            <label id="search-date-filter-label"
+                   class="form-label">
+              Date filter
+            </label>
+            {% for radio in preferences_form.date_filter_by %}
+              <label for="{{ radio.id_for_label }}" class="form-radio form-inline">
+                {{ radio.tag }}
+                <i class="form-icon"></i>
+                {{ radio.choice_label }}
+              </label>
+            {% endfor %}
+          </div>
+          <div id="date-filter-options" class="date-filter-options">
+            {% if 'date_filter_type' in preferences_form.editable_fields %}
+              <div class="form-group radio-group"
+                   role="radiogroup"
+                   aria-labelledby="search-date-type-label">
+                <label id="search-date-type-label" class="form-label">Date type</label>
+                {% for radio in preferences_form.date_filter_type %}
+                  <label for="{{ radio.id_for_label }}" class="form-radio form-inline">
+                    {{ radio.tag }}
+                    <i class="form-icon"></i>
+                    {{ radio.choice_label }}
+                  </label>
+                {% endfor %}
+              </div>
+              <div class="date-filter-relative form-group">
+                <label for="{{ preferences_form.date_filter_relative_string.id_for_label }}"
+                       class="form-label">Relative period</label>
+                {% formfield preferences_form.date_filter_relative_string class='form-select form-select-sm' %}
+              </div>
+              <div class="date-filter-absolute">
+                <div class="form-group">
+                  <label for="{{ preferences_form.date_filter_start.id_for_label }}"
+                         class="form-label">Start date</label>
+                  {% formfield preferences_form.date_filter_start class='form-input-sm' %}
+                </div>
+                <div class="form-group">
+                  <label for="{{ preferences_form.date_filter_end.id_for_label }}"
+                     class="form-label">End date</label>
+                  {% formfield preferences_form.date_filter_end class='form-input-sm' %}
+                </div>
+              </div>
+            {% endif %}
+          </div>
+          <script>
+            (function() {
+              var form = document.getElementById('search_preferences');
+              if (!form) return;
+              var dateFilterBy = form.querySelectorAll('input[name="date_filter_by"]');
+              var dateFilterType = form.querySelectorAll('input[name="date_filter_type"]');
+              var optionsEl = document.getElementById('date-filter-options');
+              var relativeEl = form.querySelector('.date-filter-relative');
+              var absoluteEl = form.querySelector('.date-filter-absolute');
+
+              function updateDateFilterUI() {
+                var byVal = form.querySelector('input[name="date_filter_by"]:checked')?.value;
+                var typeVal = form.querySelector('input[name="date_filter_type"]:checked')?.value;
+                if (optionsEl) {
+                  optionsEl.style.display = (byVal === 'added' || byVal === 'modified') ? '' : 'none';
+                }
+                if (relativeEl && absoluteEl) {
+                  relativeEl.style.display = typeVal === 'relative' ? '' : 'none';
+                  absoluteEl.style.display = typeVal === 'absolute' ? '' : 'none';
+                }
+              }
+              dateFilterBy.forEach(function(r) { r.addEventListener('change', updateDateFilterUI); });
+              dateFilterType.forEach(function(r) { r.addEventListener('change', updateDateFilterUI); });
+              updateDateFilterUI();
+            })();
+          </script>
         {% endif %}
         <div class="actions">
           <button type="submit" class="btn btn-sm btn-primary" name="apply">Apply</button>

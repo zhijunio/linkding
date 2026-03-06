@@ -271,6 +271,22 @@ def _base_bookmarks_query(
     elif search.tagged == BookmarkSearch.FILTER_TAGGED_UNTAGGED:
         query_set = query_set.filter(tags__isnull=True)
 
+    # Date filter
+    if search.date_filter_by != BookmarkSearch.FILTER_DATE_OFF:
+        start_date = search.date_filter_start
+        end_date = search.date_filter_end
+        if start_date and end_date:
+            if search.date_filter_by == BookmarkSearch.FILTER_DATE_BY_ADDED:
+                query_set = query_set.filter(
+                    date_added__date__gte=start_date,
+                    date_added__date__lte=end_date,
+                )
+            elif search.date_filter_by == BookmarkSearch.FILTER_DATE_BY_MODIFIED:
+                query_set = query_set.filter(
+                    date_modified__date__gte=start_date,
+                    date_modified__date__lte=end_date,
+                )
+
     # Filter by bundle
     if search.bundle:
         query_set = _filter_bundle(query_set, search.bundle)

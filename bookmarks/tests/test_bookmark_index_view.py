@@ -456,6 +456,9 @@ class BookmarkIndexViewTestCase(
                 "shared": BookmarkSearch.FILTER_SHARED_OFF,
                 "unread": BookmarkSearch.FILTER_UNREAD_OFF,
                 "tagged": BookmarkSearch.FILTER_TAGGED_OFF,
+                "date_filter_by": BookmarkSearch.FILTER_DATE_OFF,
+                "date_filter_type": BookmarkSearch.FILTER_DATE_TYPE_ABSOLUTE,
+                "date_filter_relative_string": None,
             },
         )
 
@@ -475,6 +478,9 @@ class BookmarkIndexViewTestCase(
                 "shared": BookmarkSearch.FILTER_SHARED_OFF,
                 "unread": BookmarkSearch.FILTER_UNREAD_OFF,
                 "tagged": BookmarkSearch.FILTER_TAGGED_OFF,
+                "date_filter_by": BookmarkSearch.FILTER_DATE_OFF,
+                "date_filter_type": BookmarkSearch.FILTER_DATE_TYPE_ABSOLUTE,
+                "date_filter_relative_string": None,
             },
         )
 
@@ -495,6 +501,9 @@ class BookmarkIndexViewTestCase(
                 "shared": BookmarkSearch.FILTER_SHARED_OFF,
                 "unread": BookmarkSearch.FILTER_UNREAD_YES,
                 "tagged": BookmarkSearch.FILTER_TAGGED_OFF,
+                "date_filter_by": BookmarkSearch.FILTER_DATE_OFF,
+                "date_filter_type": BookmarkSearch.FILTER_DATE_TYPE_ABSOLUTE,
+                "date_filter_relative_string": None,
             },
         )
 
@@ -514,6 +523,9 @@ class BookmarkIndexViewTestCase(
                 "shared": BookmarkSearch.FILTER_SHARED_OFF,
                 "unread": BookmarkSearch.FILTER_UNREAD_YES,
                 "tagged": BookmarkSearch.FILTER_TAGGED_OFF,
+                "date_filter_by": BookmarkSearch.FILTER_DATE_OFF,
+                "date_filter_type": BookmarkSearch.FILTER_DATE_TYPE_ABSOLUTE,
+                "date_filter_relative_string": None,
             },
         )
 
@@ -536,6 +548,9 @@ class BookmarkIndexViewTestCase(
                 "shared": BookmarkSearch.FILTER_SHARED_OFF,
                 "unread": BookmarkSearch.FILTER_UNREAD_OFF,
                 "tagged": BookmarkSearch.FILTER_TAGGED_OFF,
+                "date_filter_by": BookmarkSearch.FILTER_DATE_OFF,
+                "date_filter_type": BookmarkSearch.FILTER_DATE_TYPE_ABSOLUTE,
+                "date_filter_relative_string": None,
             },
         )
 

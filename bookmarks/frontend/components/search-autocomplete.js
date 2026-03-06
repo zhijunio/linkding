@@ -21,6 +21,14 @@ export class SearchAutocomplete extends TurboLitElement {
     shared: { type: String },
     unread: { type: String },
     tagged: { type: String },
+    dateFilterBy: { type: String, attribute: "date-filter-by" },
+    dateFilterType: { type: String, attribute: "date-filter-type" },
+    dateFilterStart: { type: String, attribute: "date-filter-start" },
+    dateFilterEnd: { type: String, attribute: "date-filter-end" },
+    dateFilterRelativeString: {
+      type: String,
+      attribute: "date-filter-relative-string",
+    },
     target: { type: String },
     isFocus: { state: true },
     isOpen: { state: true },
@@ -179,6 +187,11 @@ export class SearchAutocomplete extends TurboLitElement {
         shared: this.shared,
         unread: this.unread,
         tagged: this.tagged,
+        date_filter_by: this.dateFilterBy,
+        date_filter_type: this.dateFilterType,
+        date_filter_start: this.dateFilterStart,
+        date_filter_end: this.dateFilterEnd,
+        date_filter_relative_string: this.dateFilterRelativeString,
         q: this.inputValue,
       };
       const fetchedBookmarks = await api.listBookmarks(suggestionSearch, {

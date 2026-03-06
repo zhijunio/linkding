@@ -79,7 +79,7 @@ class BookmarkSearchTagTest(TestCase, BookmarkFactoryMixin, HtmlTestMixin):
     def assertModifiedLabel(self, html: str, text: str):
         soup = self.make_soup(html)
         label = soup.find("label", string=lambda s: s and s.strip() == text)
-        self.assertEqual(label["class"], ["form-label", "text-bold"])
+        self.assertEqual(label["class"], ["form-label"])
 
     def test_search_form_inputs(self):
         # Without params
