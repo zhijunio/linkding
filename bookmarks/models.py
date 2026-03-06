@@ -539,8 +539,10 @@ class UserProfile(models.Model):
     ]
     TAG_GROUPING_ALPHABETICAL = "alphabetical"
     TAG_GROUPING_DISABLED = "disabled"
+    TAG_GROUPING_PINYIN = "pinyin"
     TAG_GROUPING_CHOICES = [
         (TAG_GROUPING_ALPHABETICAL, _("Alphabetical")),
+        (TAG_GROUPING_PINYIN, _("Pinyin")),
         (TAG_GROUPING_DISABLED, _("Disabled")),
     ]
     user = models.OneToOneField(User, related_name="profile", on_delete=models.CASCADE)

@@ -7,6 +7,7 @@ from django.utils.translation import gettext, gettext_lazy
 from django.db import models
 from django.http import Http404
 from django.urls import reverse
+from pypinyin import lazy_pinyin, Style
 
 from bookmarks import queries, utils
 from bookmarks.forms import BookmarkSearchForm
@@ -415,6 +416,8 @@ class TagGroup:
             return TagGroup._create_tag_groups_alphabetical(context, tags)
         elif mode == UserProfile.TAG_GROUPING_DISABLED:
             return TagGroup._create_tag_groups_disabled(context, tags)
+        elif mode == UserProfile.TAG_GROUPING_PINYIN:
+            return TagGroup._create_tag_groups_pinyin(context, tags)
         else:
             raise ValueError(f"{mode} is not a valid tag grouping mode")
 
@@ -456,6 +459,56 @@ class TagGroup:
             group.add_tag(tag)
 
         return [group]
+
+    @staticmethod
+    def _create_tag_groups_pinyin(context: RequestContext, tags: set[Tag]):
+        """
+        Group tags by pinyin (phonetic) first letter for Chinese characters.
+        For non-Chinese tags, use alphabetical grouping.
+        """
+        if len(tags) == 0:
+            return []
+
+        def get_group_char(tag: Tag) -> str:
+            """Get the group character for a tag based on pinyin or first letter."""
+            tag_name = tag.name
+            first_char = tag_name[0]
+            
+            # Check if the first character is Chinese
+            if CJK_RE.match(first_char):
+                # Get pinyin first letter
+                pinyin_list = lazy_pinyin(first_char, style=Style.FIRST_LETTER)
+                if pinyin_list and pinyin_list[0]:
+                    return pinyin_list[0].upper()
+                # Fallback to the character itself if pinyin conversion fails
+                return first_char
+            else:
+                # For non-Chinese characters, use lowercase first letter
+                return first_char.lower()
+
+        # Sort tags: Chinese tags by pinyin, others alphabetically
+        def sort_key(tag: Tag) -> tuple:
+            """Sort key: (is_chinese, group_char, tag_name)"""
+            first_char = tag.name[0]
+            is_chinese = bool(CJK_RE.match(first_char))
+            group_char = get_group_char(tag)
+            return (not is_chinese, group_char, tag.name.lower())
+
+        sorted_tags = sorted(tags, key=sort_key)
+        groups = []
+        group = None
+
+        for tag in sorted_tags:
+            group_char = get_group_char(tag)
+            
+            if not group or group.char != group_char:
+                group = TagGroup(context, group_char)
+                groups.append(group)
+                group.add_tag(tag)
+            else:
+                group.add_tag(tag)
+
+        return groups
 
 
 class TagCloudContext:

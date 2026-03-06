@@ -251,6 +251,10 @@ msgstr "宽松"
 msgid "Alphabetical"
 msgstr "按字母"
 
+#: bookmarks/models.py:543
+msgid "Pinyin"
+msgstr "按拼音"
+
 #: bookmarks/models.py:696 bookmarks/templates/registration/login.html:9
 #: bookmarks/templates/registration/login.html:25
 #: bookmarks/templates/shared/layout.html:42
@@ -416,10 +420,8 @@ msgid "(failed)"
 msgstr "（失败）"
 
 #: bookmarks/templates/bookmarks/details/assets.html:49
-#, fuzzy
-#| msgid "Upload"
 msgid "Upload file"
-msgstr "上传"
+msgstr "上传文件"
 
 #: bookmarks/templates/bookmarks/details/form.html:32
 msgid "Internet Archive"
@@ -984,9 +986,10 @@ msgstr "标签分组"
 
 #: bookmarks/templates/settings/general.html:120
 msgid ""
-"In alphabetical mode, tags will be grouped by the first letter. If disabled, "
-"tags will not be grouped."
-msgstr "按字母顺序时，标签按首字母分组；禁用则不分组。"
+"In alphabetical mode, tags will be grouped by the first letter. In pinyin mode, "
+"Chinese tags will be grouped by pinyin first letter. If disabled, tags will not "
+"be grouped."
+msgstr "按字母顺序时，标签按首字母分组；按拼音顺序时，中文标签按拼音首字母分组；禁用则不分组。"
 
 #: bookmarks/templates/settings/general.html:126
 #: bookmarks/templates/settings/general.html:129

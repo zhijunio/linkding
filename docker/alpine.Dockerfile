@@ -48,7 +48,9 @@ RUN wget https://www.sqlite.org/${SQLITE_RELEASE_YEAR}/sqlite-amalgamation-${SQL
 
 
 FROM python:3.13.7-alpine3.22 AS linkding
-LABEL org.opencontainers.image.source="https://github.com/sissbruecker/linkding"
+LABEL org.opencontainers.image.source="https://github.com/chensoul/linkding" \
+      org.opencontainers.image.title="Linkding" \
+      org.opencontainers.image.description="Self-hosted bookmark manager that is designed to be minimal, fast, and easy to set up using Docker. Enhanced with Chinese localization and additional features from linkding-cn. Alpine-based image for smaller size."
 # install runtime dependencies
 # gettext: required for compiling Django locale files (.po to .mo)
 RUN apk update && apk add bash curl icu libpq mailcap libssl3 gettext
@@ -84,7 +86,7 @@ RUN chmod g+w . && \
 HEALTHCHECK --interval=30s --retries=3 --timeout=1s \
 CMD curl -f http://localhost:${LD_SERVER_PORT:-9090}/${LD_CONTEXT_PATH}health || exit 1
 
-CMD ["./bootstrap.sh"]
+CMD ["/bin/bash", "./bootstrap.sh"]
 
 
 FROM node:22-alpine AS ublock-build
