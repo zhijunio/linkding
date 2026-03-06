@@ -1,4 +1,5 @@
-<html lang="en">
+{% load i18n %}
+<html lang="{{ request.LANGUAGE_CODE|default:'en' }}">
   {% include 'shared/head.html' %}
   <body>
     <!--content-->

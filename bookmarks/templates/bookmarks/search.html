@@ -1,8 +1,8 @@
-{% load static shared %}
+{% load static shared i18n %}
 <div class="search-container">
   <form id="search" action="" method="get" role="search">
     <ld-search-autocomplete input-name="q"
-                            input-placeholder="Search for words or #tags"
+                            input-placeholder="{% trans 'Search for words or #tags' %}"
                             input-value="{{ search.q|default_if_none:'' }}"
                             target="{{ request.user_profile.bookmark_link_target }}"
                             mode="{{ mode }}"
@@ -16,12 +16,12 @@
                             date-filter-end="{% if search.date_filter_end %}{{ search.date_filter_end|date:'Y-m-d' }}{% endif %}"
                             date-filter-relative-string="{{ search.date_filter_relative_string|default_if_none:'' }}">
     </ld-search-autocomplete>
-    <input type="submit" value="Search" class="d-none">
+    <input type="submit" value="{% trans 'Search' %}" class="d-none">
     {% for hidden_field in search_form.hidden_fields %}{{ hidden_field }}{% endfor %}
   </form>
   <ld-dropdown class="search-options dropdown dropdown-right">
     <button type="button"
-            aria-label="Search preferences"
+            aria-label="{% trans 'Search preferences' %}"
             class="btn dropdown-toggle{% if search.has_modified_preferences %} badge{% endif %}">
       <svg width="20" height="20">
         <use href="{% static 'icons.svg' %}?v={{ app_version }}#preferences"></use>
@@ -33,7 +33,7 @@
         {% if 'sort' in preferences_form.editable_fields %}
           <div class="form-group">
             <label for="{{ preferences_form.sort.id_for_label }}"
-                   class="form-label">Sort by</label>
+                   class="form-label">{% trans "Sort by" %}</label>
             {% formfield preferences_form.sort class='select-sm' %}
           </div>
         {% endif %}
@@ -43,7 +43,7 @@
                aria-labelledby="search-shared-label">
             <label id="search-shared-label"
                    class="form-label">
-              Shared filter
+              {% trans "Shared filter" %}
             </label>
             {% for radio in preferences_form.shared %}
               <label for="{{ radio.id_for_label }}" class="form-radio form-inline">
@@ -60,7 +60,7 @@
                aria-labelledby="search-unread-label">
             <label id="search-unread-label"
                    class="form-label">
-              Unread filter
+              {% trans "Unread filter" %}
             </label>
             {% for radio in preferences_form.unread %}
               <label for="{{ radio.id_for_label }}" class="form-radio form-inline">
@@ -77,7 +77,7 @@
                aria-labelledby="search-tagged-label">
             <label id="search-tagged-label"
                    class="form-label">
-              Tagged filter
+              {% trans "Tagged filter" %}
             </label>
             {% for radio in preferences_form.tagged %}
               <label for="{{ radio.id_for_label }}" class="form-radio form-inline">
@@ -94,7 +94,7 @@
                aria-labelledby="search-date-filter-label">
             <label id="search-date-filter-label"
                    class="form-label">
-              Date filter
+              {% trans "Date filter" %}
             </label>
             {% for radio in preferences_form.date_filter_by %}
               <label for="{{ radio.id_for_label }}" class="form-radio form-inline">
@@ -109,7 +109,7 @@
               <div class="form-group radio-group"
                    role="radiogroup"
                    aria-labelledby="search-date-type-label">
-                <label id="search-date-type-label" class="form-label">Date type</label>
+                <label id="search-date-type-label" class="form-label">{% trans "Date type" %}</label>
                 {% for radio in preferences_form.date_filter_type %}
                   <label for="{{ radio.id_for_label }}" class="form-radio form-inline">
                     {{ radio.tag }}
@@ -120,18 +120,18 @@
               </div>
               <div class="date-filter-relative form-group">
                 <label for="{{ preferences_form.date_filter_relative_string.id_for_label }}"
-                       class="form-label">Relative period</label>
+                       class="form-label">{% trans "Relative period" %}</label>
                 {% formfield preferences_form.date_filter_relative_string class='form-select form-select-sm' %}
               </div>
               <div class="date-filter-absolute">
                 <div class="form-group">
                   <label for="{{ preferences_form.date_filter_start.id_for_label }}"
-                         class="form-label">Start date</label>
+                         class="form-label">{% trans "Start date" %}</label>
                   {% formfield preferences_form.date_filter_start class='form-input-sm' %}
                 </div>
                 <div class="form-group">
                   <label for="{{ preferences_form.date_filter_end.id_for_label }}"
-                     class="form-label">End date</label>
+                     class="form-label">{% trans "End date" %}</label>
                   {% formfield preferences_form.date_filter_end class='form-input-sm' %}
                 </div>
               </div>
@@ -165,9 +165,9 @@
           </script>
         {% endif %}
         <div class="actions">
-          <button type="submit" class="btn btn-sm btn-primary" name="apply">Apply</button>
+          <button type="submit" class="btn btn-sm btn-primary" name="apply">{% trans "Apply" %}</button>
           {% if request.user.is_authenticated %}
-            <button type="submit" class="btn btn-sm" name="save">Save as default</button>
+            <button type="submit" class="btn btn-sm" name="save">{% trans "Save as default" %}</button>
           {% endif %}
         </div>
         {% for hidden_field in preferences_form.hidden_fields %}{{ hidden_field }}{% endfor %}

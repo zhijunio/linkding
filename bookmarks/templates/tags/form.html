@@ -1,9 +1,10 @@
-{% load shared %}
+{% load shared i18n %}
 <div class="form-group">
-  {% formlabel form.name "Name" %}
+  {% trans "Name" as name_label %}
+  {% formlabel form.name name_label %}
   {% formfield form.name has_help=True autofocus=True %}
   {% formhelp form.name %}
-    Tag names are case-insensitive and cannot contain spaces (spaces will be replaced with hyphens).
+    {% blocktrans %}Tag names are case-insensitive and cannot contain spaces (spaces will be replaced with hyphens).{% endblocktrans %}
   {% endformhelp %}
   {{ form.name.errors }}
 </div>

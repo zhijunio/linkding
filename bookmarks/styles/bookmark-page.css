@@ -85,7 +85,7 @@
   & .dropdown {
     & .menu {
       padding: var(--unit-4);
-      min-width: 250px;
+      min-width: 300px;
       font-size: var(--font-size-sm);
     }
 
@@ -104,16 +104,24 @@
     }
 
     & .radio-group {
+      display: flex;
+      flex-wrap: nowrap;
+      align-items: center;
+      gap: var(--unit-2);
+
       & .form-label {
-        margin-bottom: var(--unit-1);
+        margin-bottom: 0;
+        flex-shrink: 0;
       }
 
       & .form-radio.form-inline {
-        margin: 0 var(--unit-2) 0 0;
+        margin: 0;
         padding: 0;
         display: inline-flex;
         align-items: center;
         column-gap: var(--unit-1);
+        white-space: nowrap;
+        flex-shrink: 0;
       }
 
       & .form-icon {

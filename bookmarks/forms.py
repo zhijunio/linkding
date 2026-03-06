@@ -2,6 +2,7 @@ from django import forms
 from django.contrib.auth.models import User
 from django.db import models
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
 from bookmarks.models import (
     Bookmark,
@@ -247,35 +248,35 @@ class BookmarkBundleForm(forms.ModelForm):
 
 class BookmarkSearchForm(forms.Form):
     SORT_CHOICES = [
-        (BookmarkSearch.SORT_ADDED_ASC, "Added ↑"),
-        (BookmarkSearch.SORT_ADDED_DESC, "Added ↓"),
-        (BookmarkSearch.SORT_TITLE_ASC, "Title ↑"),
-        (BookmarkSearch.SORT_TITLE_DESC, "Title ↓"),
-        (BookmarkSearch.SORT_RANDOM, "Random"),
+        (BookmarkSearch.SORT_ADDED_ASC, _("Added ↑")),
+        (BookmarkSearch.SORT_ADDED_DESC, _("Added ↓")),
+        (BookmarkSearch.SORT_TITLE_ASC, _("Title ↑")),
+        (BookmarkSearch.SORT_TITLE_DESC, _("Title ↓")),
+        (BookmarkSearch.SORT_RANDOM, _("Random")),
     ]
     FILTER_SHARED_CHOICES = [
-        (BookmarkSearch.FILTER_SHARED_OFF, "Off"),
-        (BookmarkSearch.FILTER_SHARED_SHARED, "Shared"),
-        (BookmarkSearch.FILTER_SHARED_UNSHARED, "Unshared"),
+        (BookmarkSearch.FILTER_SHARED_OFF, _("Off")),
+        (BookmarkSearch.FILTER_SHARED_SHARED, _("Shared")),
+        (BookmarkSearch.FILTER_SHARED_UNSHARED, _("Unshared")),
     ]
     FILTER_UNREAD_CHOICES = [
-        (BookmarkSearch.FILTER_UNREAD_OFF, "Off"),
-        (BookmarkSearch.FILTER_UNREAD_YES, "Unread"),
-        (BookmarkSearch.FILTER_UNREAD_NO, "Read"),
+        (BookmarkSearch.FILTER_UNREAD_OFF, _("Off")),
+        (BookmarkSearch.FILTER_UNREAD_YES, _("Unread")),
+        (BookmarkSearch.FILTER_UNREAD_NO, _("Read")),
     ]
     FILTER_TAGGED_CHOICES = [
-        (BookmarkSearch.FILTER_TAGGED_OFF, "Off"),
-        (BookmarkSearch.FILTER_TAGGED_TAGGED, "Tagged"),
-        (BookmarkSearch.FILTER_TAGGED_UNTAGGED, "Untagged"),
+        (BookmarkSearch.FILTER_TAGGED_OFF, _("Off")),
+        (BookmarkSearch.FILTER_TAGGED_TAGGED, _("Tagged")),
+        (BookmarkSearch.FILTER_TAGGED_UNTAGGED, _("Untagged")),
     ]
     FILTER_DATE_BY_CHOICES = [
-        (BookmarkSearch.FILTER_DATE_OFF, "Off"),
-        (BookmarkSearch.FILTER_DATE_BY_ADDED, "Added"),
-        (BookmarkSearch.FILTER_DATE_BY_MODIFIED, "Modified"),
+        (BookmarkSearch.FILTER_DATE_OFF, _("Off")),
+        (BookmarkSearch.FILTER_DATE_BY_ADDED, _("Added")),
+        (BookmarkSearch.FILTER_DATE_BY_MODIFIED, _("Modified")),
     ]
     FILTER_DATE_TYPE_CHOICES = [
-        (BookmarkSearch.FILTER_DATE_TYPE_ABSOLUTE, "Absolute"),
-        (BookmarkSearch.FILTER_DATE_TYPE_RELATIVE, "Relative"),
+        (BookmarkSearch.FILTER_DATE_TYPE_ABSOLUTE, _("Absolute")),
+        (BookmarkSearch.FILTER_DATE_TYPE_RELATIVE, _("Relative")),
     ]
 
     q = forms.CharField()
@@ -295,13 +296,13 @@ class BookmarkSearchForm(forms.Form):
     )
     DATE_RELATIVE_CHOICES = [
         ("", "--"),
-        ("today", "Today"),
-        ("yesterday", "Yesterday"),
-        ("this_week", "This week"),
-        ("this_month", "This month"),
-        ("this_year", "This year"),
-        ("last_7_days", "Last 7 days"),
-        ("last_30_days", "Last 30 days"),
+        ("today", _("Today")),
+        ("yesterday", _("Yesterday")),
+        ("this_week", _("This week")),
+        ("this_month", _("This month")),
+        ("this_year", _("This year")),
+        ("last_7_days", _("Last 7 days")),
+        ("last_30_days", _("Last 30 days")),
     ]
     date_filter_relative_string = forms.ChoiceField(
         required=False,

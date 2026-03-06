@@ -1,16 +1,17 @@
+{% load i18n %}
 <div class="empty mt-4">
   {% if not bookmark_list.query_is_valid %}
-    <p class="empty-title h5">Invalid search query</p>
+    <p class="empty-title h5">{% trans "Invalid search query" %}</p>
     <p class="empty-subtitle">
-      The search query you entered is not valid. Common reasons are unclosed parentheses or a logical operator (AND, OR,
-      NOT) without operands. The error message from the parser is: "{{ bookmark_list.query_error_message }}".
+      {% blocktrans with msg=bookmark_list.query_error_message %}The search query you entered is not valid. Common reasons are unclosed parentheses or a logical operator (AND, OR, NOT) without operands. The error message from the parser is: "{{ msg }}".{% endblocktrans %}
     </p>
   {% else %}
-    <p class="empty-title h5">You have no bookmarks yet</p>
+    <p class="empty-title h5">{% trans "You have no bookmarks yet" %}</p>
     <p class="empty-subtitle">
-      You can get started by <a href="{% url 'linkding:bookmarks.new' %}">adding</a> bookmarks,
-      <a href="{% url 'linkding:settings.general' %}">importing</a> your existing bookmarks or configuring the
-      <a href="{% url 'linkding:settings.integrations' %}">browser extension</a> or the <a href="{% url 'linkding:settings.integrations' %}">bookmarklet</a>.
+      {% url 'linkding:bookmarks.new' as add_url %}
+      {% url 'linkding:settings.general' as settings_url %}
+      {% url 'linkding:settings.integrations' as integrations_url %}
+      {% blocktrans %}You can get started by <a href="{{ add_url }}">adding</a> bookmarks, <a href="{{ settings_url }}">importing</a> your existing bookmarks or configuring the <a href="{{ integrations_url }}">browser extension</a> or the <a href="{{ integrations_url }}">bookmarklet</a>.{% endblocktrans %}
     </p>
   {% endif %}
 </div>

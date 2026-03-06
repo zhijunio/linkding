@@ -13,52 +13,35 @@ from bookmarks.utils import (
 
 class UtilsTestCase(TestCase):
     def test_humanize_absolute_date(self):
+        """Absolute mode always shows full date format, never Today/Yesterday/weekday."""
         test_cases = [
-            (
-                timezone.datetime(2021, 1, 1),
-                timezone.datetime(2023, 1, 1),
-                "01/01/2021",
-            ),
-            (
-                timezone.datetime(2021, 1, 1),
-                timezone.datetime(2021, 2, 1),
-                "01/01/2021",
-            ),
-            (
-                timezone.datetime(2021, 1, 1),
-                timezone.datetime(2021, 1, 8),
-                "01/01/2021",
-            ),
-            (timezone.datetime(2021, 1, 1), timezone.datetime(2021, 1, 7), "Friday"),
-            (
-                timezone.datetime(2021, 1, 1),
-                timezone.datetime(2021, 1, 7, 23, 59),
-                "Friday",
-            ),
-            (timezone.datetime(2021, 1, 1), timezone.datetime(2021, 1, 3), "Friday"),
-            (timezone.datetime(2021, 1, 1), timezone.datetime(2021, 1, 2), "Yesterday"),
-            (
-                timezone.datetime(2021, 1, 1),
-                timezone.datetime(2021, 1, 2, 23, 59),
-                "Yesterday",
-            ),
-            (timezone.datetime(2021, 1, 1), timezone.datetime(2021, 1, 1), "Today"),
+            (timezone.datetime(2021, 1, 1), timezone.datetime(2023, 1, 1)),
+            (timezone.datetime(2021, 1, 1), timezone.datetime(2021, 2, 1)),
+            (timezone.datetime(2021, 1, 1), timezone.datetime(2021, 1, 8)),
+            (timezone.datetime(2021, 1, 1), timezone.datetime(2021, 1, 7)),
+            (timezone.datetime(2021, 1, 1), timezone.datetime(2021, 1, 7, 23, 59)),
+            (timezone.datetime(2021, 1, 1), timezone.datetime(2021, 1, 3)),
+            (timezone.datetime(2021, 1, 1), timezone.datetime(2021, 1, 2)),
+            (timezone.datetime(2021, 1, 1), timezone.datetime(2021, 1, 2, 23, 59)),
+            (timezone.datetime(2021, 1, 1), timezone.datetime(2021, 1, 1)),
         ]
 
-        for test_case in test_cases:
-            result = humanize_absolute_date(test_case[0], test_case[1])
-            self.assertEqual(test_case[2], result)
+        for value, _now in test_cases:
+            result = humanize_absolute_date(value, _now)
+            expected = "01/01/2021"  # en-us SHORT_DATE_FORMAT
+            self.assertEqual(result, expected)
 
     def test_humanize_absolute_date_should_use_current_date_as_default(self):
+        """Absolute mode always returns formatted date; now param is optional."""
         with patch.object(timezone, "now", return_value=timezone.datetime(2021, 1, 1)):
             self.assertEqual(
-                humanize_absolute_date(timezone.datetime(2021, 1, 1)), "Today"
+                humanize_absolute_date(timezone.datetime(2021, 1, 1)), "01/01/2021"
             )
 
-        # Regression: Test that subsequent calls use current date instead of cached date (#107)
+        # Regression: Test that subsequent calls work (#107)
         with patch.object(timezone, "now", return_value=timezone.datetime(2021, 1, 13)):
             self.assertEqual(
-                humanize_absolute_date(timezone.datetime(2021, 1, 13)), "Today"
+                humanize_absolute_date(timezone.datetime(2021, 1, 13)), "01/13/2021"
             )
 
     def test_humanize_relative_date(self):

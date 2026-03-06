@@ -1,7 +1,7 @@
-{% load static %}
+{% load static i18n %}
 <!DOCTYPE html>
 {# Use data attributes as storage for access in static scripts #}
-<html lang="en" data-api-base-url="{% url 'linkding:api-root' %}">
+<html lang="{{ request.LANGUAGE_CODE|default:'en' }}" data-api-base-url="{% url 'linkding:api-root' %}">
   {% block head %}
     {% include 'shared/head.html' %}
   {% endblock %}
@@ -35,7 +35,7 @@
             {% include 'shared/nav_menu.html' %}
           {% else %}
             {# Otherwise show login link #}
-            <a href="{% url 'login' %}" class="btn btn-link">Login</a>
+            <a href="{% url 'login' %}" class="btn btn-link">{% trans "Login" %}</a>
           {% endif %}
         </nav>
       </div>

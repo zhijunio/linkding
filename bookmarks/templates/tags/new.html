@@ -1,3 +1,4 @@
+{% load i18n %}
 <turbo-frame id="tag-modal">
 <form method="post"
       action="{% url 'linkding:tags.new' %}"
@@ -9,11 +10,12 @@
             data-turbo-frame="tag-modal">
     <div class="modal-overlay" data-close-modal></div>
     <div class="modal-container" role="dialog" aria-modal="true">
-      {% include 'shared/modal_header.html' with title="Create Tag" %}
+      {% trans "Create Tag" as create_tag_title %}
+      {% include 'shared/modal_header.html' with title=create_tag_title %}
       <div class="modal-body">{% include 'tags/form.html' %}</div>
       <div class="modal-footer d-flex justify-between">
-        <button type="button" class="btn btn-wide" data-close-modal>Cancel</button>
-        <button type="submit" class="btn btn-primary btn-wide">Save</button>
+        <button type="button" class="btn btn-wide" data-close-modal>{% trans "Cancel" %}</button>
+        <button type="submit" class="btn btn-primary btn-wide">{% trans "Save" %}</button>
       </div>
     </div>
   </ld-modal>

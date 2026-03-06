@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.contrib.auth.middleware import RemoteUserMiddleware
+from django.utils import translation
 
 from bookmarks.models import GlobalSettings, UserProfile
 
@@ -38,4 +39,17 @@ class LinkdingMiddleware:
 
         response = self.get_response(request)
 
+        return response
+
+
+class AdminLocaleMiddleware:
+    """Force Admin backend pages to always use English."""
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        if request.path.startswith("/admin/"):
+            translation.activate("en")
+        response = self.get_response(request)
         return response

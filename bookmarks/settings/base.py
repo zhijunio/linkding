@@ -62,6 +62,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django.middleware.locale.LocaleMiddleware",
+    "bookmarks.middlewares.AdminLocaleMiddleware",
 ]
 
 ROOT_URLCONF = "bookmarks.urls"
@@ -116,13 +117,20 @@ LOGOUT_REDIRECT_URL = "/" + LD_CONTEXT_PATH + "login"
 # Internationalization
 # https://docs.djangoproject.com/en/2.2/topics/i18n/
 
-LANGUAGE_CODE = "en-us"
+LANGUAGE_CODE = os.getenv("LD_LANGUAGE", "en-us")
 
 TIME_ZONE = os.getenv("TZ", "UTC")
 
 USE_I18N = True
 
 USE_TZ = True
+
+LANGUAGES = [
+    ("en-us", "English"),
+    ("zh-hans", "简体中文"),
+]
+
+LOCALE_PATHS = [os.path.join(BASE_DIR, "bookmarks", "locale")]
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.2/howto/static-files/

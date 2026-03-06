@@ -9,6 +9,7 @@ from django.conf import settings
 from django.http import HttpResponseRedirect
 from django.template.defaultfilters import pluralize
 from django.utils import formats, timezone
+from django.utils.translation import gettext, ngettext
 
 try:
     with open("version.txt") as f:
@@ -22,15 +23,18 @@ def unique(elements, key):
     return list({key(element): element for element in elements}.values())
 
 
-weekday_names = {
-    1: "Monday",
-    2: "Tuesday",
-    3: "Wednesday",
-    4: "Thursday",
-    5: "Friday",
-    6: "Saturday",
-    7: "Sunday",
-}
+def _weekday_name(weekday: int) -> str:
+    """Return localized weekday name (1=Monday, 7=Sunday)."""
+    names = {
+        1: gettext("Monday"),
+        2: gettext("Tuesday"),
+        3: gettext("Wednesday"),
+        4: gettext("Thursday"),
+        5: gettext("Friday"),
+        6: gettext("Saturday"),
+        7: gettext("Sunday"),
+    }
+    return names.get(weekday, "")
 
 
 @dataclass
@@ -63,21 +67,8 @@ def _calculate_date_delta(
 def humanize_absolute_date(
     value: datetime.datetime, now: datetime.datetime | None = None
 ):
-    if not now:
-        now = timezone.now()
-    delta = _calculate_date_delta(now, value)
-    yesterday = now - datetime.timedelta(days=1)
-
-    is_older_than_a_week = delta.years > 0 or delta.months > 0 or delta.weeks > 0
-
-    if is_older_than_a_week:
-        return formats.date_format(value, "SHORT_DATE_FORMAT")
-    elif value.day == now.day:
-        return "Today"
-    elif value.day == yesterday.day:
-        return "Yesterday"
-    else:
-        return weekday_names[value.isoweekday()]
+    """Always return the localized absolute date format (e.g. 2024年3月5日)."""
+    return formats.date_format(value, "SHORT_DATE_FORMAT")
 
 
 def humanize_relative_date(
@@ -88,19 +79,25 @@ def humanize_relative_date(
     delta = _calculate_date_delta(now, value)
 
     if delta.years > 0:
-        return f"{delta.years} year{pluralize(delta.years)} ago"
+        return ngettext("%(count)s year ago", "%(count)s years ago", delta.years) % {
+            "count": delta.years
+        }
     elif delta.months > 0:
-        return f"{delta.months} month{pluralize(delta.months)} ago"
+        return ngettext("%(count)s month ago", "%(count)s months ago", delta.months) % {
+            "count": delta.months
+        }
     elif delta.weeks > 0:
-        return f"{delta.weeks} week{pluralize(delta.weeks)} ago"
+        return ngettext("%(count)s week ago", "%(count)s weeks ago", delta.weeks) % {
+            "count": delta.weeks
+        }
     else:
         yesterday = now - datetime.timedelta(days=1)
         if value.day == now.day:
-            return "Today"
+            return gettext("Today")
         elif value.day == yesterday.day:
-            return "Yesterday"
+            return gettext("Yesterday")
         else:
-            return weekday_names[value.isoweekday()]
+            return _weekday_name(value.isoweekday())
 
 
 def parse_timestamp(value: str):

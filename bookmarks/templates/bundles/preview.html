@@ -1,8 +1,9 @@
+{% load i18n %}
 <turbo-frame id="preview">
 {% if bookmark_list.is_empty %}
-  <div>No bookmarks match the current bundle.</div>
+  <div>{% trans "No bookmarks match the current bundle." %}</div>
 {% else %}
-  <div class="mb-4">Found {{ bookmark_list.bookmarks_total }} bookmarks matching this bundle.</div>
+  <div class="mb-4">{% blocktrans count counter=bookmark_list.bookmarks_total %}Found {{ counter }} bookmark matching this bundle.{% plural %}Found {{ counter }} bookmarks matching this bundle.{% endblocktrans %}</div>
   {% with pagination_frame="preview" %}
     {% include 'bookmarks/bookmark_list.html' %}
   {% endwith %}
