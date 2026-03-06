@@ -20,6 +20,7 @@ export class SearchAutocomplete extends TurboLitElement {
     user: { type: String },
     shared: { type: String },
     unread: { type: String },
+    tagged: { type: String },
     target: { type: String },
     isFocus: { state: true },
     isOpen: { state: true },
@@ -177,6 +178,7 @@ export class SearchAutocomplete extends TurboLitElement {
         user: this.user,
         shared: this.shared,
         unread: this.unread,
+        tagged: this.tagged,
         q: this.inputValue,
       };
       const fetchedBookmarks = await api.listBookmarks(suggestionSearch, {

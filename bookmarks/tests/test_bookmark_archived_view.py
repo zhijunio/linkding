@@ -462,6 +462,7 @@ class BookmarkArchivedViewTestCase(
                 "sort": BookmarkSearch.SORT_ADDED_DESC,
                 "shared": BookmarkSearch.FILTER_SHARED_OFF,
                 "unread": BookmarkSearch.FILTER_UNREAD_OFF,
+                "tagged": BookmarkSearch.FILTER_TAGGED_OFF,
             },
         )
 
@@ -480,6 +481,7 @@ class BookmarkArchivedViewTestCase(
                 "sort": BookmarkSearch.SORT_TITLE_ASC,
                 "shared": BookmarkSearch.FILTER_SHARED_OFF,
                 "unread": BookmarkSearch.FILTER_UNREAD_OFF,
+                "tagged": BookmarkSearch.FILTER_TAGGED_OFF,
             },
         )
 
@@ -499,6 +501,7 @@ class BookmarkArchivedViewTestCase(
                 "sort": BookmarkSearch.SORT_TITLE_ASC,
                 "shared": BookmarkSearch.FILTER_SHARED_OFF,
                 "unread": BookmarkSearch.FILTER_UNREAD_YES,
+                "tagged": BookmarkSearch.FILTER_TAGGED_OFF,
             },
         )
 
@@ -517,6 +520,7 @@ class BookmarkArchivedViewTestCase(
                 "sort": BookmarkSearch.SORT_ADDED_DESC,
                 "shared": BookmarkSearch.FILTER_SHARED_OFF,
                 "unread": BookmarkSearch.FILTER_UNREAD_YES,
+                "tagged": BookmarkSearch.FILTER_TAGGED_OFF,
             },
         )
 
@@ -538,6 +542,7 @@ class BookmarkArchivedViewTestCase(
                 "sort": BookmarkSearch.SORT_TITLE_ASC,
                 "shared": BookmarkSearch.FILTER_SHARED_OFF,
                 "unread": BookmarkSearch.FILTER_UNREAD_OFF,
+                "tagged": BookmarkSearch.FILTER_TAGGED_OFF,
             },
         )
 

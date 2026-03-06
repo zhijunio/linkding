@@ -251,6 +251,7 @@ class BookmarkSearchForm(forms.Form):
         (BookmarkSearch.SORT_ADDED_DESC, "Added ↓"),
         (BookmarkSearch.SORT_TITLE_ASC, "Title ↑"),
         (BookmarkSearch.SORT_TITLE_DESC, "Title ↓"),
+        (BookmarkSearch.SORT_RANDOM, "Random"),
     ]
     FILTER_SHARED_CHOICES = [
         (BookmarkSearch.FILTER_SHARED_OFF, "Off"),
@@ -262,6 +263,11 @@ class BookmarkSearchForm(forms.Form):
         (BookmarkSearch.FILTER_UNREAD_YES, "Unread"),
         (BookmarkSearch.FILTER_UNREAD_NO, "Read"),
     ]
+    FILTER_TAGGED_CHOICES = [
+        (BookmarkSearch.FILTER_TAGGED_OFF, "Off"),
+        (BookmarkSearch.FILTER_TAGGED_TAGGED, "Tagged"),
+        (BookmarkSearch.FILTER_TAGGED_UNTAGGED, "Untagged"),
+    ]
 
     q = forms.CharField()
     user = forms.ChoiceField(required=False, widget=FormSelect)
@@ -269,6 +275,7 @@ class BookmarkSearchForm(forms.Form):
     sort = forms.ChoiceField(choices=SORT_CHOICES, widget=FormSelect)
     shared = forms.ChoiceField(choices=FILTER_SHARED_CHOICES, widget=forms.RadioSelect)
     unread = forms.ChoiceField(choices=FILTER_UNREAD_CHOICES, widget=forms.RadioSelect)
+    tagged = forms.ChoiceField(choices=FILTER_TAGGED_CHOICES, widget=forms.RadioSelect)
     modified_since = forms.CharField(required=False)
     added_since = forms.CharField(required=False)
 

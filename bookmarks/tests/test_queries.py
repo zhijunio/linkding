@@ -538,6 +538,34 @@ class QueriesBasicTestCase(TestCase, BookmarkFactoryMixin):
         )
         self.assertCountEqual(list(query), read_bookmarks)
 
+    def test_query_bookmarks_filter_tagged(self):
+        tag = self.setup_tag(name="test-tag")
+        tagged_bookmarks = [
+            self.setup_bookmark(tags=[tag]),
+            self.setup_bookmark(tags=[tag]),
+        ]
+        untagged_bookmarks = [
+            self.setup_bookmark(),
+            self.setup_bookmark(),
+        ]
+
+        # Tagged filter off - returns all
+        search = BookmarkSearch(tagged=BookmarkSearch.FILTER_TAGGED_OFF)
+        query = queries.query_bookmarks(self.user, self.profile, search)
+        self.assertEqual(query.count(), 4)
+
+        # Tagged filter yes - returns only tagged
+        search = BookmarkSearch(tagged=BookmarkSearch.FILTER_TAGGED_TAGGED)
+        query = queries.query_bookmarks(self.user, self.profile, search)
+        result_ids = {b.id for b in query}
+        self.assertEqual(result_ids, {b.id for b in tagged_bookmarks})
+
+        # Tagged filter no - returns only untagged
+        search = BookmarkSearch(tagged=BookmarkSearch.FILTER_TAGGED_UNTAGGED)
+        query = queries.query_bookmarks(self.user, self.profile, search)
+        result_ids = {b.id for b in query}
+        self.assertEqual(result_ids, {b.id for b in untagged_bookmarks})
+
     def test_query_bookmarks_filter_shared(self):
         unshared_bookmarks = self.setup_numbered_bookmarks(5)
         shared_bookmarks = self.setup_numbered_bookmarks(5, shared=True)
@@ -1213,6 +1241,22 @@ class QueriesBasicTestCase(TestCase, BookmarkFactoryMixin):
         expected_effective_titles = [b.resolved_title for b in sorted_bookmarks]
         actual_effective_titles = [b.resolved_title for b in query]
         self.assertEqual(expected_effective_titles, actual_effective_titles)
+
+    def test_sort_by_random(self):
+        search = BookmarkSearch(sort=BookmarkSearch.SORT_RANDOM)
+
+        bookmarks = [
+            self.setup_bookmark(),
+            self.setup_bookmark(),
+            self.setup_bookmark(),
+        ]
+        expected_ids = {b.id for b in bookmarks}
+
+        query = queries.query_bookmarks(self.user, self.profile, search)
+        result_ids = {b.id for b in query}
+
+        self.assertEqual(result_ids, expected_ids)
+        self.assertEqual(len(result_ids), len(bookmarks))
 
     def test_query_bookmarks_filter_modified_since(self):
         # Create bookmarks with different modification dates

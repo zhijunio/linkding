@@ -226,6 +226,7 @@ class BookmarkSearch:
     SORT_ADDED_DESC = "added_desc"
     SORT_TITLE_ASC = "title_asc"
     SORT_TITLE_DESC = "title_desc"
+    SORT_RANDOM = "random"
 
     FILTER_SHARED_OFF = "off"
     FILTER_SHARED_SHARED = "yes"
@@ -235,6 +236,10 @@ class BookmarkSearch:
     FILTER_UNREAD_YES = "yes"
     FILTER_UNREAD_NO = "no"
 
+    FILTER_TAGGED_OFF = "off"
+    FILTER_TAGGED_TAGGED = "yes"
+    FILTER_TAGGED_UNTAGGED = "no"
+
     params = [
         "q",
         "user",
@@ -242,10 +247,11 @@ class BookmarkSearch:
         "sort",
         "shared",
         "unread",
+        "tagged",
         "modified_since",
         "added_since",
     ]
-    preferences = ["sort", "shared", "unread"]
+    preferences = ["sort", "shared", "unread", "tagged"]
     defaults = {
         "q": "",
         "user": "",
@@ -253,6 +259,7 @@ class BookmarkSearch:
         "sort": SORT_ADDED_DESC,
         "shared": FILTER_SHARED_OFF,
         "unread": FILTER_UNREAD_OFF,
+        "tagged": FILTER_TAGGED_OFF,
         "modified_since": None,
         "added_since": None,
     }
@@ -265,6 +272,7 @@ class BookmarkSearch:
         sort: str = None,
         shared: str = None,
         unread: str = None,
+        tagged: str = None,
         modified_since: str = None,
         added_since: str = None,
         preferences: dict = None,
@@ -281,6 +289,7 @@ class BookmarkSearch:
         self.sort = sort or self.defaults["sort"]
         self.shared = shared or self.defaults["shared"]
         self.unread = unread or self.defaults["unread"]
+        self.tagged = tagged or self.defaults["tagged"]
         self.modified_since = modified_since or self.defaults["modified_since"]
         self.added_since = added_since or self.defaults["added_since"]
 

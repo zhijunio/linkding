@@ -265,6 +265,12 @@ def _base_bookmarks_query(
     elif search.shared == BookmarkSearch.FILTER_SHARED_UNSHARED:
         query_set = query_set.filter(shared=False)
 
+    # Tagged filter
+    if search.tagged == BookmarkSearch.FILTER_TAGGED_TAGGED:
+        query_set = query_set.filter(tags__isnull=False).distinct()
+    elif search.tagged == BookmarkSearch.FILTER_TAGGED_UNTAGGED:
+        query_set = query_set.filter(tags__isnull=True)
+
     # Filter by bundle
     if search.bundle:
         query_set = _filter_bundle(query_set, search.bundle)
@@ -298,6 +304,8 @@ def _base_bookmarks_query(
             query_set = query_set.order_by(order_field).reverse()
     elif search.sort == BookmarkSearch.SORT_ADDED_ASC:
         query_set = query_set.order_by("date_added")
+    elif search.sort == BookmarkSearch.SORT_RANDOM:
+        query_set = query_set.order_by("?")
     else:
         # Sort by date added, descending by default
         query_set = query_set.order_by("-date_added")
