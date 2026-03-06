@@ -50,7 +50,8 @@ RUN wget https://www.sqlite.org/${SQLITE_RELEASE_YEAR}/sqlite-amalgamation-${SQL
 FROM python:3.13.7-alpine3.22 AS linkding
 LABEL org.opencontainers.image.source="https://github.com/sissbruecker/linkding"
 # install runtime dependencies
-RUN apk update && apk add bash curl icu libpq mailcap libssl3
+# gettext: required for compiling Django locale files (.po to .mo)
+RUN apk update && apk add bash curl icu libpq mailcap libssl3 gettext
 # create www-data user and group
 RUN set -x ; \
   addgroup -g 82 -S www-data ; \
@@ -67,9 +68,10 @@ COPY . .
 # Activate virtual env
 ENV VIRTUAL_ENV=/etc/linkding/.venv
 ENV PATH="/etc/linkding/.venv/bin:$PATH"
-# Generate static files, remove source styles that are not needed
+# Generate static files and compile locale files
 RUN mkdir data && \
-    python manage.py collectstatic
+    python manage.py collectstatic && \
+    python manage.py compilemessages
 
 # Limit file descriptors used by uwsgi, see https://github.com/sissbruecker/linkding/issues/453
 ENV UWSGI_MAX_FD=4096
