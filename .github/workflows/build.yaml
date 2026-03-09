@@ -3,15 +3,44 @@ name: build
 on: workflow_dispatch
 
 jobs:
-  build:
+  prepare:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - id: get_version
+        run: echo "version=$(cat version.txt)" >> $GITHUB_OUTPUT
+    outputs:
+      version: ${{ steps.get_version.outputs.version }}
 
-      - name: Read version from file
-        id: get_version
-        run: echo "VERSION=$(cat version.txt)" >> $GITHUB_ENV
+  build:
+    needs: prepare
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: latest
+            file: ./docker/default.Dockerfile
+            target: linkding
+            suffix: ""
+            cache_ref: ghcr.io/chensoul/linkding:buildcache
+          - name: latest-alpine
+            file: ./docker/alpine.Dockerfile
+            target: linkding
+            suffix: -alpine
+            cache_ref: ghcr.io/chensoul/linkding:buildcache-alpine
+          - name: latest-plus
+            file: ./docker/default.Dockerfile
+            target: linkding-plus
+            suffix: -plus
+            cache_ref: ghcr.io/chensoul/linkding:buildcache
+          - name: latest-plus-alpine
+            file: ./docker/alpine.Dockerfile
+            target: linkding-plus
+            suffix: -plus-alpine
+            cache_ref: ghcr.io/chensoul/linkding:buildcache-alpine
+    steps:
+      - uses: actions/checkout@v4
 
       - name: Login to Docker Hub
         uses: docker/login-action@v3
@@ -32,66 +61,18 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build latest
+      - name: Build and push ${{ matrix.name }}
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: ./docker/default.Dockerfile
+          file: ${{ matrix.file }}
           platforms: linux/amd64,linux/arm64,linux/arm/v7
           tags: |
-            chensoul/linkding:latest
-            chensoul/linkding:${{ env.VERSION }}
-            ghcr.io/chensoul/linkding:latest
-            ghcr.io/chensoul/linkding:${{ env.VERSION }}
-          target: linkding
+            chensoul/linkding:${{ matrix.name }}
+            chensoul/linkding:${{ needs.prepare.outputs.version }}${{ matrix.suffix }}
+            ghcr.io/chensoul/linkding:${{ matrix.name }}
+            ghcr.io/chensoul/linkding:${{ needs.prepare.outputs.version }}${{ matrix.suffix }}
+          target: ${{ matrix.target }}
           push: true
-          cache-from: type=registry,ref=ghcr.io/chensoul/linkding:buildcache
-          cache-to: type=registry,ref=ghcr.io/chensoul/linkding:buildcache,mode=max
-
-      - name: Build latest-alpine
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: ./docker/alpine.Dockerfile
-          platforms: linux/amd64,linux/arm64,linux/arm/v7
-          tags: |
-            chensoul/linkding:latest-alpine
-            chensoul/linkding:${{ env.VERSION }}-alpine
-            ghcr.io/chensoul/linkding:latest-alpine
-            ghcr.io/chensoul/linkding:${{ env.VERSION }}-alpine
-          target: linkding
-          push: true
-          cache-from: type=registry,ref=ghcr.io/chensoul/linkding:buildcache-alpine
-          cache-to: type=registry,ref=ghcr.io/chensoul/linkding:buildcache-alpine,mode=max
-
-      - name: Build latest-plus
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: ./docker/default.Dockerfile
-          platforms: linux/amd64,linux/arm64,linux/arm/v7
-          tags: |
-            chensoul/linkding:latest-plus
-            chensoul/linkding:${{ env.VERSION }}-plus
-            ghcr.io/chensoul/linkding:latest-plus
-            ghcr.io/chensoul/linkding:${{ env.VERSION }}-plus
-          target: linkding-plus
-          push: true
-          cache-from: type=registry,ref=ghcr.io/chensoul/linkding:buildcache
-          cache-to: type=registry,ref=ghcr.io/chensoul/linkding:buildcache,mode=max
-
-      - name: Build latest-plus-alpine
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: ./docker/alpine.Dockerfile
-          platforms: linux/amd64,linux/arm64,linux/arm/v7
-          tags: |
-            chensoul/linkding:latest-plus-alpine
-            chensoul/linkding:${{ env.VERSION }}-plus-alpine
-            ghcr.io/chensoul/linkding:latest-plus-alpine
-            ghcr.io/chensoul/linkding:${{ env.VERSION }}-plus-alpine
-          target: linkding-plus
-          push: true
-          cache-from: type=registry,ref=ghcr.io/chensoul/linkding:buildcache-alpine
-          cache-to: type=registry,ref=ghcr.io/chensoul/linkding:buildcache-alpine,mode=max
+          cache-from: type=registry,ref=${{ matrix.cache_ref }}
+          cache-to: type=registry,ref=${{ matrix.cache_ref }},mode=max
