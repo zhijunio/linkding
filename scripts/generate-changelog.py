@@ -5,7 +5,7 @@ import requests
 
 
 def load_releases_page(page):
-    url = f'https://api.github.com/repos/sissbruecker/linkding/releases?page={page}'
+    url = f'https://api.github.com/repos/chensoul/linkding/releases?page={page}'
     return requests.get(url).json()
 
 

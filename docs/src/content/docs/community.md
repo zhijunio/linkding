@@ -3,7 +3,7 @@ title: "Community"
 description: "Community projects around linkding"
 ---
 
-This section lists community projects around using linkding. If you have a project that you want to share with the linkding community, feel free to [submit a PR](https://github.com/sissbruecker/linkding/edit/master/docs/src/content/docs/community.md) to add your project to this section.
+This section lists community projects around using linkding. If you have a project that you want to share with the linkding community, feel free to [submit a PR](https://github.com/chensoul/linkding/edit/master/docs/src/content/docs/community.md) to add your project to this section.
 
 ## Mobile and Desktop Apps
 

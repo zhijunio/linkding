@@ -14,7 +14,7 @@ export default defineConfig({
         {
           icon: "github",
           label: "GitHub",
-          href: "https://github.com/sissbruecker/linkding",
+          href: "https://github.com/chensoul/linkding",
         },
       ],
       sidebar: [
@@ -51,7 +51,7 @@ export default defineConfig({
       ],
       customCss: ["./src/styles/custom.css"],
       editLink: {
-        baseUrl: "https://github.com/sissbruecker/linkding/edit/master/docs/",
+        baseUrl: "https://github.com/chensoul/linkding/edit/master/docs/",
       },
     }),
   ],

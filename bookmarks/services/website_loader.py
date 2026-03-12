@@ -81,6 +81,8 @@ def _title_for_github_url(url: str) -> str | None:
     For GitHub URLs, return the path as title in "user/repo" form.
     E.g. https://github.com/owner/repo -> "owner/repo"
     """
+    if not isinstance(url, str):
+        return None
     parsed = urlparse(url)
     if parsed.netloc not in ("github.com", "www.github.com"):
         return None

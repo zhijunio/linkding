@@ -91,14 +91,14 @@ CMD ["/bin/bash", "./bootstrap.sh"]
 
 FROM node:22-alpine AS ublock-build
 WORKDIR /etc/linkding
-# Install necessary tools
-# Download and unzip the latest uBlock Origin Lite release
+# Pin uBOL version to avoid GitHub API rate limits during build
+ARG UBOL_TAG=2026.308.1810
+# Install necessary tools; download and unzip uBlock Origin Lite
 # Patch manifest to enable annoyances by default
 RUN apk add --no-cache curl jq unzip && \
-    TAG=$(curl -sL https://api.github.com/repos/uBlockOrigin/uBOL-home/releases/latest | jq -r '.tag_name') && \
-    DOWNLOAD_URL=https://github.com/uBlockOrigin/uBOL-home/releases/download/$TAG/uBOLite_$TAG.chromium.zip && \
+    DOWNLOAD_URL=https://github.com/uBlockOrigin/uBOL-home/releases/download/${UBOL_TAG}/uBOLite_${UBOL_TAG}.chromium.zip && \
     echo "Downloading $DOWNLOAD_URL" && \
-    curl -L -o uBOLite.zip $DOWNLOAD_URL && \
+    curl -L -o uBOLite.zip "$DOWNLOAD_URL" && \
     unzip uBOLite.zip -d uBOLite.chromium.mv3 && \
     rm uBOLite.zip && \
     jq '.declarative_net_request.rule_resources |= map(if .id == "annoyances-overlays" or .id == "annoyances-cookies" or .id == "annoyances-social" or .id == "annoyances-widgets" or .id == "annoyances-others" then .enabled = true else . end)' \

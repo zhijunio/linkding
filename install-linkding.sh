@@ -33,11 +33,11 @@ docker stop ${LD_CONTAINER_NAME} || true
 echo "Remove existing container..."
 docker rm ${LD_CONTAINER_NAME} || true
 echo "Update image..."
-docker pull sissbruecker/linkding:latest
+docker pull chensoul/linkding:latest
 echo "Start container..."
 docker run -d \
   -p ${LD_HOST_PORT}:9090 \
   --name ${LD_CONTAINER_NAME} \
   -v ${LD_HOST_DATA_DIR}:/etc/linkding/data \
-  sissbruecker/linkding:latest
+  chensoul/linkding:latest
 echo "Done!"
