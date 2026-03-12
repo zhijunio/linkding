@@ -1,7 +1,7 @@
 import logging
 from dataclasses import dataclass
 from functools import lru_cache
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse
 
 import requests
 from bs4 import BeautifulSoup
@@ -76,10 +76,28 @@ def _extract_title(soup: BeautifulSoup) -> str | None:
     return None
 
 
+def _title_for_github_url(url: str) -> str | None:
+    """
+    For GitHub URLs, return the path as title in "user/repo" form.
+    E.g. https://github.com/owner/repo -> "owner/repo"
+    """
+    parsed = urlparse(url)
+    if parsed.netloc not in ("github.com", "www.github.com"):
+        return None
+    parts = [p for p in parsed.path.strip("/").split("/") if p]
+    if len(parts) >= 2:
+        return f"{parts[0]}/{parts[1]}"
+    return None
+
+
 def _load_website_metadata(url: str):
     title = None
     description = None
     preview_image = None
+    # Prefer GitHub repo path as title (user/repo); skip parsing <title> for GitHub
+    github_title = _title_for_github_url(url)
+    if github_title is not None:
+        title = github_title
     try:
         start = timezone.now()
         page_text = load_page(url)
@@ -89,7 +107,8 @@ def _load_website_metadata(url: str):
         start = timezone.now()
         soup = BeautifulSoup(page_text, "html.parser")
 
-        title = _extract_title(soup)
+        if title is None:
+            title = _extract_title(soup)
         description_tag = soup.find("meta", attrs={"name": "description"})
         description = (
             description_tag["content"].strip()
