@@ -97,6 +97,32 @@
     padding: var(--unit-6);
     padding-top: 0;
   }
+
+  /* Primary action on top, cancel below (full-width stacked buttons) */
+  & .modal-footer.modal-footer-stacked {
+    display: flex;
+    flex-direction: column;
+    gap: var(--unit-2);
+    align-items: stretch;
+
+    & > .btn,
+    & > a.btn,
+    & > input[type="submit"] {
+      width: 100%;
+      box-sizing: border-box;
+      text-align: center;
+    }
+
+    & > form {
+      display: block;
+      width: 100%;
+    }
+
+    & > form .btn {
+      width: 100%;
+      box-sizing: border-box;
+    }
+  }
 }
 
 .modal.drawer {

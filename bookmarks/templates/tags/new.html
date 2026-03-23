@@ -13,9 +13,9 @@
       {% trans "Create Tag" as create_tag_title %}
       {% include 'shared/modal_header.html' with title=create_tag_title %}
       <div class="modal-body">{% include 'tags/form.html' %}</div>
-      <div class="modal-footer d-flex justify-between">
-        <button type="button" class="btn btn-wide" data-close-modal>{% trans "Cancel" %}</button>
+      <div class="modal-footer modal-footer-stacked">
         <button type="submit" class="btn btn-primary btn-wide">{% trans "Save" %}</button>
+        <button type="button" class="btn btn-wide" data-close-modal>{% trans "Cancel" %}</button>
       </div>
     </div>
   </ld-modal>

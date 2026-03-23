@@ -173,7 +173,7 @@ class TagMergeForm(forms.Form):
         target_tag_names = parse_tag_string(target_tag_name, " ")
         if len(target_tag_names) != 1:
             raise forms.ValidationError(
-                "Please enter only one tag name for the target tag."
+                _("Please enter only one tag name for the target tag.")
             )
 
         target_tag_name = target_tag_names[0]
@@ -182,7 +182,7 @@ class TagMergeForm(forms.Form):
             target_tag = Tag.objects.get(name__iexact=target_tag_name, owner=self.user)
         except Tag.DoesNotExist:
             raise forms.ValidationError(
-                f'Tag "{target_tag_name}" does not exist.'
+                _('Tag "%(name)s" does not exist.') % {"name": target_tag_name}
             ) from None
 
         return target_tag
@@ -192,7 +192,7 @@ class TagMergeForm(forms.Form):
 
         merge_tag_names = parse_tag_string(merge_tags_string, " ")
         if not merge_tag_names:
-            raise forms.ValidationError("Please enter at least one tag to merge.")
+            raise forms.ValidationError(_("Please enter at least one tag to merge."))
 
         merge_tags = []
         for tag_name in merge_tag_names:
@@ -201,13 +201,13 @@ class TagMergeForm(forms.Form):
                 merge_tags.append(tag)
             except Tag.DoesNotExist:
                 raise forms.ValidationError(
-                    f'Tag "{tag_name}" does not exist.'
+                    _('Tag "%(name)s" does not exist.') % {"name": tag_name}
                 ) from None
 
         target_tag = self.cleaned_data.get("target_tag")
         if target_tag and target_tag in merge_tags:
             raise forms.ValidationError(
-                "The target tag cannot be selected for merging."
+                _("The target tag cannot be selected for merging.")
             )
 
         return merge_tags
@@ -229,6 +229,7 @@ class BookmarkBundleForm(forms.ModelForm):
         ("today", _("Today")),
         ("yesterday", _("Yesterday")),
         ("this_week", _("This week")),
+        ("last_week", _("Last week")),
         ("this_month", _("This month")),
         ("this_year", _("This year")),
         ("last_7_days", _("Last 7 days")),
@@ -396,6 +397,7 @@ class BookmarkSearchForm(forms.Form):
         ("today", _("Today")),
         ("yesterday", _("Yesterday")),
         ("this_week", _("This week")),
+        ("last_week", _("Last week")),
         ("this_month", _("This month")),
         ("this_year", _("This year")),
         ("last_7_days", _("Last 7 days")),

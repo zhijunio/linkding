@@ -469,6 +469,7 @@ RELATIVE_DATE_KEYWORDS = (
     "today",
     "yesterday",
     "this_week",
+    "last_week",
     "this_month",
     "this_year",
     "last_7_days",

@@ -7,6 +7,7 @@ from django.http import (
     HttpResponseBadRequest,
     HttpResponseForbidden,
     HttpResponseRedirect,
+    JsonResponse,
 )
 from django.shortcuts import render
 from django.urls import reverse
@@ -23,6 +24,7 @@ from bookmarks.services import tasks
 from bookmarks.services.bookmarks import (
     archive_bookmark,
     archive_bookmarks,
+    build_bookmarks_markdown_export,
     create_html_snapshots,
     delete_bookmarks,
     mark_bookmarks_as_read,
@@ -346,7 +348,7 @@ def archived_action(request: HttpRequest):
 
 @login_required
 def shared_action(request: HttpRequest):
-    if "bulk_execute" in request.POST:
+    if "bulk_execute" in request.POST or "bulk_copy_markdown" in request.POST:
         return HttpResponseBadRequest("View does not support bulk actions")
 
     response = handle_action(request)
@@ -383,11 +385,14 @@ def handle_action(request: HttpRequest, query: QuerySet[Bookmark] = None):
         return update_state(request, request.POST["update_state"])
 
     # Bulk actions
-    if "bulk_execute" in request.POST:
+    if "bulk_execute" in request.POST or "bulk_copy_markdown" in request.POST:
         if query is None:
             raise ValueError("Query must be provided for bulk actions")
 
-        bulk_action = request.POST["bulk_action"]
+        if "bulk_copy_markdown" in request.POST:
+            bulk_action = "bulk_copy_markdown"
+        else:
+            bulk_action = request.POST["bulk_action"]
 
         # Determine set of bookmarks
         if request.POST.get("bulk_select_across") == "on":
@@ -421,6 +426,26 @@ def handle_action(request: HttpRequest, query: QuerySet[Bookmark] = None):
             return refresh_bookmarks_metadata(bookmark_ids, request.user)
         if bulk_action == "bulk_snapshot":
             return create_html_snapshots(bookmark_ids, request.user)
+        if bulk_action == "bulk_copy_markdown":
+            ids_for_md = (
+                list(bookmark_ids)
+                if request.POST.get("bulk_select_across") == "on"
+                else bookmark_ids
+            )
+            markdown, count = build_bookmarks_markdown_export(ids_for_md, request.user)
+            if count == 0:
+                return JsonResponse(
+                    {"error": gettext("No bookmarks selected or found.")},
+                    status=400,
+                )
+            return JsonResponse(
+                {
+                    "markdown": markdown,
+                    "count": count,
+                    "message": gettext("Copied %(count)s bookmark(s) as Markdown.")
+                    % {"count": count},
+                }
+            )
 
 
 @login_required

@@ -1,5 +1,28 @@
 import { HeadlessElement } from "../utils/element.js";
 
+async function copyTextToClipboard(text) {
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      return;
+    }
+  } catch {
+    // fall through to execCommand fallback (e.g. non-HTTPS or denied permission)
+  }
+  const ta = document.createElement("textarea");
+  ta.value = text;
+  ta.setAttribute("readonly", "");
+  ta.style.position = "fixed";
+  ta.style.left = "-9999px";
+  document.body.appendChild(ta);
+  ta.select();
+  try {
+    document.execCommand("copy");
+  } finally {
+    document.body.removeChild(ta);
+  }
+}
+
 class BookmarkPage extends HeadlessElement {
   init() {
     this.update = this.update.bind(this);
@@ -8,6 +31,7 @@ class BookmarkPage extends HeadlessElement {
     this.onBulkActionChange = this.onBulkActionChange.bind(this);
     this.onToggleAll = this.onToggleAll.bind(this);
     this.onToggleBookmark = this.onToggleBookmark.bind(this);
+    this.onBookmarkActionsSubmit = this.onBookmarkActionsSubmit.bind(this);
 
     this.oldItems = [];
     this.update();
@@ -16,6 +40,11 @@ class BookmarkPage extends HeadlessElement {
 
   disconnectedCallback() {
     document.removeEventListener("bookmark-list-updated", this.update);
+    this.formBookmarkActions?.removeEventListener(
+      "submit",
+      this.onBookmarkActionsSubmit,
+      true,
+    );
   }
 
   update() {
@@ -66,6 +95,13 @@ class BookmarkPage extends HeadlessElement {
       return;
     }
 
+    const checkedBookmarkIds = new Set();
+    this.bookmarkCheckboxes?.forEach((checkbox) => {
+      if (checkbox.checked) {
+        checkedBookmarkIds.add(checkbox.value);
+      }
+    });
+
     // Remove existing listeners
     this.activeToggle?.removeEventListener("click", this.onToggleBulkEdit);
     this.actionSelect?.removeEventListener("change", this.onBulkActionChange);
@@ -83,22 +119,40 @@ class BookmarkPage extends HeadlessElement {
     );
     this.selectAcross = this.querySelector("label.select-across");
     this.executeButton = this.querySelector("button[name='bulk_execute']");
+    this.copyMarkdownButton = this.querySelector(
+      "button[name='bulk_copy_markdown']",
+    );
 
     // Add listeners
-    this.activeToggle.addEventListener("click", this.onToggleBulkEdit);
-    this.actionSelect.addEventListener("change", this.onBulkActionChange);
-    this.allCheckbox.addEventListener("change", this.onToggleAll);
+    this.activeToggle?.addEventListener("click", this.onToggleBulkEdit);
+    this.actionSelect?.addEventListener("change", this.onBulkActionChange);
+    this.allCheckbox?.addEventListener("change", this.onToggleAll);
     this.bookmarkCheckboxes.forEach((checkbox) => {
+      checkbox.checked = checkedBookmarkIds.has(checkbox.value);
       checkbox.addEventListener("change", this.onToggleBookmark);
     });
 
-    // Reset checkbox states
-    this.allCheckbox.checked = false;
-    this.bookmarkCheckboxes.forEach((checkbox) => {
-      checkbox.checked = false;
-    });
-    this.updateSelectAcross(false);
+    const allRowsChecked =
+      this.bookmarkCheckboxes.length > 0 &&
+      this.bookmarkCheckboxes.every((checkbox) => checkbox.checked);
+    if (this.allCheckbox) {
+      this.allCheckbox.checked = allRowsChecked;
+    }
+    this.updateSelectAcross(allRowsChecked);
     this.updateExecuteButton();
+
+    this.formBookmarkActions = this.querySelector("form.bookmark-actions");
+    this.formBookmarkActions?.removeEventListener(
+      "submit",
+      this.onBookmarkActionsSubmit,
+      true,
+    );
+    this.formBookmarkActions?.addEventListener(
+      "submit",
+      this.onBookmarkActionsSubmit,
+      true,
+    );
+    this.onBulkActionChange();
 
     // Update total number of bookmarks
     const totalHolder = this.querySelector("[data-bookmarks-total]");
@@ -114,10 +168,82 @@ class BookmarkPage extends HeadlessElement {
   }
 
   onBulkActionChange() {
-    this.dataset.bulkAction = this.actionSelect.value;
+    if (this.actionSelect) {
+      this.dataset.bulkAction = this.actionSelect.value;
+    }
+    if (!this.executeButton) {
+      return;
+    }
+    this.executeButton.setAttribute("data-confirm", "");
+  }
+
+  async onBookmarkActionsSubmit(event) {
+    const form = event.target;
+    if (!(form instanceof HTMLFormElement)) {
+      return;
+    }
+    if (!form.classList.contains("bookmark-actions")) {
+      return;
+    }
+    const submitter = event.submitter;
+    if (!submitter || submitter.name !== "bulk_copy_markdown") {
+      return;
+    }
+    event.preventDefault();
+    const fd = new FormData(form, submitter);
+    const csrf = form.querySelector("[name=csrfmiddlewaretoken]")?.value;
+    try {
+      const response = await fetch(form.action, {
+        method: "POST",
+        body: fd,
+        headers: {
+          Accept: "application/json",
+          ...(csrf ? { "X-CSRFToken": csrf } : {}),
+        },
+        credentials: "same-origin",
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        const err =
+          typeof data.error === "string"
+            ? data.error
+            : "Could not copy bookmarks as Markdown.";
+        this.showMarkdownCopyToast(err, "error");
+        return;
+      }
+      if (typeof data.markdown === "string") {
+        await copyTextToClipboard(data.markdown);
+      }
+      const msg =
+        typeof data.message === "string"
+          ? data.message
+          : "Copied bookmarks as Markdown.";
+      this.showMarkdownCopyToast(msg, "success");
+    } catch {
+      this.showMarkdownCopyToast(
+        "Could not copy bookmarks as Markdown.",
+        "error",
+      );
+    }
+  }
+
+  showMarkdownCopyToast(message, variant) {
+    let list = document.querySelector(".message-list");
+    if (!list) {
+      list = document.createElement("div");
+      list.className = "message-list";
+      document.querySelector("header")?.prepend(list);
+    }
+    const toast = document.createElement("div");
+    toast.className = `toast toast-${variant} mb-4`;
+    toast.textContent = message;
+    list.prepend(toast);
   }
 
   onToggleAll() {
+    if (!this.allCheckbox) {
+      return;
+    }
     const allChecked = this.allCheckbox.checked;
     this.bookmarkCheckboxes.forEach((checkbox) => {
       checkbox.checked = allChecked;
@@ -127,6 +253,9 @@ class BookmarkPage extends HeadlessElement {
   }
 
   onToggleBookmark() {
+    if (!this.allCheckbox) {
+      return;
+    }
     const allChecked = this.bookmarkCheckboxes.every((checkbox) => {
       return checkbox.checked;
     });
@@ -136,11 +265,17 @@ class BookmarkPage extends HeadlessElement {
   }
 
   updateSelectAcross(allChecked) {
+    if (!this.selectAcross) {
+      return;
+    }
     if (allChecked) {
       this.selectAcross.classList.remove("d-none");
     } else {
       this.selectAcross.classList.add("d-none");
-      this.selectAcross.querySelector("input").checked = false;
+      const input = this.selectAcross.querySelector("input");
+      if (input) {
+        input.checked = false;
+      }
     }
   }
 
@@ -148,7 +283,12 @@ class BookmarkPage extends HeadlessElement {
     const anyChecked = this.bookmarkCheckboxes.some((checkbox) => {
       return checkbox.checked;
     });
-    this.executeButton.disabled = !anyChecked;
+    if (this.executeButton) {
+      this.executeButton.disabled = !anyChecked;
+    }
+    if (this.copyMarkdownButton) {
+      this.copyMarkdownButton.disabled = !anyChecked;
+    }
   }
 }
 

@@ -46,6 +46,8 @@ The following links help you to get started with linkding:
 
 ## Documentation
 
+Release notes for this fork: [CHANGELOG.md](CHANGELOG.md) (e.g. v1.45.0.2).
+
 The full documentation is now available at [linkding.link](https://linkding.link/).
 
 If you want to contribute to the documentation, you can find the source files in the `docs` folder.

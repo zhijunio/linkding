@@ -39,7 +39,7 @@ class BookmarkPageBulkEditE2ETestCase(LinkdingE2ETestCase):
         self.open(reverse("linkding:bookmarks.index"))
 
         bookmark_list = self.locate_bookmark_list().element_handle()
-        self.locate_bulk_edit_toggle().click()
+        self.ensure_bulk_edit_mode()
         self.locate_bulk_edit_select_all().click()
         self.locate_bulk_edit_select_across().click()
 
@@ -76,7 +76,7 @@ class BookmarkPageBulkEditE2ETestCase(LinkdingE2ETestCase):
         self.open(reverse("linkding:bookmarks.archived"))
 
         bookmark_list = self.locate_bookmark_list().element_handle()
-        self.locate_bulk_edit_toggle().click()
+        self.ensure_bulk_edit_mode()
         self.locate_bulk_edit_select_all().click()
         self.locate_bulk_edit_select_across().click()
 
@@ -113,7 +113,7 @@ class BookmarkPageBulkEditE2ETestCase(LinkdingE2ETestCase):
         self.open(reverse("linkding:bookmarks.index") + "?q=foo")
 
         bookmark_list = self.locate_bookmark_list().element_handle()
-        self.locate_bulk_edit_toggle().click()
+        self.ensure_bulk_edit_mode()
         self.locate_bulk_edit_select_all().click()
         self.locate_bulk_edit_select_across().click()
 
@@ -150,7 +150,7 @@ class BookmarkPageBulkEditE2ETestCase(LinkdingE2ETestCase):
         self.open(reverse("linkding:bookmarks.archived") + "?q=foo")
 
         bookmark_list = self.locate_bookmark_list().element_handle()
-        self.locate_bulk_edit_toggle().click()
+        self.ensure_bulk_edit_mode()
         self.locate_bulk_edit_select_all().click()
         self.locate_bulk_edit_select_across().click()
 
@@ -187,7 +187,7 @@ class BookmarkPageBulkEditE2ETestCase(LinkdingE2ETestCase):
         url = reverse("linkding:bookmarks.index")
         page = self.open(url)
 
-        self.locate_bulk_edit_toggle().click()
+        self.ensure_bulk_edit_mode()
 
         checkboxes = page.locator("label.bulk-edit-checkbox input")
         self.assertEqual(6, checkboxes.count())
@@ -210,7 +210,7 @@ class BookmarkPageBulkEditE2ETestCase(LinkdingE2ETestCase):
         url = reverse("linkding:bookmarks.index")
         self.open(url)
 
-        self.locate_bulk_edit_toggle().click()
+        self.ensure_bulk_edit_mode()
 
         expect(self.locate_bulk_edit_select_across()).not_to_be_visible()
 
@@ -226,7 +226,7 @@ class BookmarkPageBulkEditE2ETestCase(LinkdingE2ETestCase):
         url = reverse("linkding:bookmarks.index")
         self.open(url)
 
-        self.locate_bulk_edit_toggle().click()
+        self.ensure_bulk_edit_mode()
 
         # Show select across, check it
         self.locate_bulk_edit_select_all().click()
@@ -247,7 +247,7 @@ class BookmarkPageBulkEditE2ETestCase(LinkdingE2ETestCase):
         url = reverse("linkding:bookmarks.index")
         self.open(url)
 
-        self.locate_bulk_edit_toggle().click()
+        self.ensure_bulk_edit_mode()
 
         # Show select across, check it
         self.locate_bulk_edit_select_all().click()
@@ -271,7 +271,7 @@ class BookmarkPageBulkEditE2ETestCase(LinkdingE2ETestCase):
         bookmark_list = self.locate_bookmark_list().element_handle()
 
         # Select all bookmarks, enable select across
-        self.locate_bulk_edit_toggle().click()
+        self.ensure_bulk_edit_mode()
         self.locate_bulk_edit_select_all().click()
         self.locate_bulk_edit_select_across().click()
 
@@ -300,7 +300,7 @@ class BookmarkPageBulkEditE2ETestCase(LinkdingE2ETestCase):
         self.open(url)
 
         bookmark_list = self.locate_bookmark_list().element_handle()
-        self.locate_bulk_edit_toggle().click()
+        self.ensure_bulk_edit_mode()
         self.locate_bulk_edit_select_all().click()
 
         expect(
@@ -326,7 +326,7 @@ class BookmarkPageBulkEditE2ETestCase(LinkdingE2ETestCase):
         url = reverse("linkding:bookmarks.index")
         self.open(url)
 
-        self.locate_bulk_edit_toggle().click()
+        self.ensure_bulk_edit_mode()
 
         execute_button = self.locate_bulk_edit_bar().get_by_text("Execute")
 

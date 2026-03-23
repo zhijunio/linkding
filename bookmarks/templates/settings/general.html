@@ -180,15 +180,15 @@ reddit.com/r/Music music reddit</pre>
           </div>
         {% endif %}
         <div class="form-group">
-          {% formfield form.default_mark_unread label=_("Create bookmarks as unread by default") has_help=True %}
-          {% formhelp form.default_mark_unread %}
-            {% blocktrans %}Sets the default state for the "Mark as unread" option when creating a new bookmark. Setting this option will make all new bookmarks default to unread. This can be overridden when creating each new bookmark.{% endblocktrans %}
-          {% endformhelp %}
-        </div>
-        <div class="form-group">
           {% formfield form.default_mark_shared label=_("Create bookmarks as shared by default") has_help=True %}
           {% formhelp form.default_mark_shared %}
             {% blocktrans %}Sets the default state for the "Share" option when creating a new bookmark. Setting this option will make all new bookmarks default to shared. This can be overridden when creating each new bookmark.{% endblocktrans %}
+          {% endformhelp %}
+        </div>
+        <div class="form-group">
+          {% formfield form.default_mark_unread label=_("Create bookmarks as unread by default") has_help=True %}
+          {% formhelp form.default_mark_unread %}
+            {% blocktrans %}Sets the default state for the "Mark as unread" option when creating a new bookmark. Setting this option will make all new bookmarks default to unread. This can be overridden when creating each new bookmark.{% endblocktrans %}
           {% endformhelp %}
         </div>
         <div class="form-group">
@@ -305,9 +305,9 @@ reddit.com/r/Music music reddit</pre>
             <td style="vertical-align: top">{% trans "Links" %}</td>
             <td>
               <div class="d-flex flex-column gap-2">
-                <a href="https://github.com/sissbruecker/linkding/" target="_blank">{% trans "GitHub" %}</a>
+                <a href="https://github.com/chensoul/linkding/" target="_blank">{% trans "GitHub" %}</a>
                 <a href="https://linkding.link/" target="_blank">{% trans "Documentation" %}</a>
-                <a href="https://github.com/sissbruecker/linkding/blob/master/CHANGELOG.md"
+                <a href="https://github.com/chensoul/linkding/blob/master/CHANGELOG.md"
                    target="_blank">{% trans "Changelog" %}</a>
               </div>
             </td>

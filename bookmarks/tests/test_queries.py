@@ -2183,6 +2183,10 @@ class ParseQueryStringTestCase(TestCase):
         self.assertEqual(result["tag_names"], ["bar"])
         self.assertEqual(result["date_filter_relative_string"], "last_30_days")
 
+        result = queries.parse_query_string("notes !last_week")
+        self.assertEqual(result["search_terms"], ["notes"])
+        self.assertEqual(result["date_filter_relative_string"], "last_week")
+
     def test_parse_query_string_no_date_filter(self):
         result = queries.parse_query_string("tutorial !untagged")
         self.assertIsNone(result["date_filter_relative_string"])

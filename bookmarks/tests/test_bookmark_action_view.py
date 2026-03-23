@@ -1,3 +1,4 @@
+import json
 from unittest.mock import patch
 
 from django.contrib.auth.models import User
@@ -403,6 +404,56 @@ class BookmarkActionViewTestCase(
         self.assertTrue(Bookmark.objects.get(id=bookmark1.id).is_archived)
         self.assertTrue(Bookmark.objects.get(id=bookmark2.id).is_archived)
         self.assertTrue(Bookmark.objects.get(id=bookmark3.id).is_archived)
+
+    def test_bulk_copy_markdown_returns_json(self):
+        tag1 = self.setup_tag(name="reference")
+        tag2 = self.setup_tag(name="tool")
+        bm1 = self.setup_bookmark(
+            title="Example Article",
+            url="https://example.com/article",
+            description="这是一篇关于某个主题的资料。",
+            tags=[tag1],
+        )
+        bm2 = self.setup_bookmark(
+            title="Useful Tool",
+            url="https://example.com/tool",
+            description="一个可长期使用的在线工具。",
+            tags=[tag2],
+        )
+        response = self.client.post(
+            reverse("linkding:bookmarks.index.action"),
+            {
+                "bulk_copy_markdown": ["1"],
+                "bookmark_id": [str(bm2.id), str(bm1.id)],
+            },
+            HTTP_ACCEPT="application/json",
+        )
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content)
+        self.assertEqual(data["count"], 2)
+        self.assertIn("Example Article", data["markdown"])
+        self.assertIn("Useful Tool", data["markdown"])
+        md = data["markdown"]
+        self.assertLess(md.index("Useful Tool"), md.index("Example Article"))
+        self.assertIn("#reference", data["markdown"])
+        self.assertIn("#tool", data["markdown"])
+        self.assertIn("标签：", data["markdown"])
+        self.assertIn("摘要：", data["markdown"])
+        self.assertIn("](https://example.com/article)", data["markdown"])
+        self.assertIn("](https://example.com/tool)", data["markdown"])
+
+    def test_bulk_copy_markdown_empty_returns_400(self):
+        response = self.client.post(
+            reverse("linkding:bookmarks.index.action"),
+            {
+                "bulk_copy_markdown": ["1"],
+                "bookmark_id": [],
+            },
+            HTTP_ACCEPT="application/json",
+        )
+        self.assertEqual(response.status_code, 400)
+        data = json.loads(response.content)
+        self.assertIn("error", data)
 
     def test_bulk_delete(self):
         bookmark1 = self.setup_bookmark()

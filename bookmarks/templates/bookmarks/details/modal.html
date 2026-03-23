@@ -10,26 +10,20 @@
       {% include 'shared/modal_header.html' with title=details.bookmark.resolved_title %}
       <div class="modal-body">{% include 'bookmarks/details/form.html' %}</div>
       {% if details.is_editable %}
-        <div class="modal-footer">
-          <div class="actions">
-            <div class="left-actions">
-              <a class="btn btn-wide"
-                 href="{% url 'linkding:bookmarks.edit' details.bookmark.id %}?return_url={{ details.edit_return_url|urlencode }}">{% trans "Edit" %}</a>
-            </div>
-            <div class="right-actions">
-              <form action="{{ details.delete_url }}"
-                    method="post"
-                    data-turbo-action="replace">
-                {% csrf_token %}
-                <input type="hidden" name="disable_turbo" value="true">
-                <button data-confirm
-                        class="btn btn-error btn-wide"
-                        type="submit"
-                        name="remove"
-                        value="{{ details.bookmark.id }}">{% trans "Delete" %}</button>
-              </form>
-            </div>
-          </div>
+        <div class="modal-footer modal-footer-stacked">
+          <a class="btn btn-wide"
+             href="{% url 'linkding:bookmarks.edit' details.bookmark.id %}?return_url={{ details.edit_return_url|urlencode }}">{% trans "Edit" %}</a>
+          <form action="{{ details.delete_url }}"
+                method="post"
+                data-turbo-action="replace">
+            {% csrf_token %}
+            <input type="hidden" name="disable_turbo" value="true">
+            <button data-confirm
+                    class="btn btn-error btn-wide"
+                    type="submit"
+                    name="remove"
+                    value="{{ details.bookmark.id }}">{% trans "Delete" %}</button>
+          </form>
         </div>
       {% endif %}
     </div>

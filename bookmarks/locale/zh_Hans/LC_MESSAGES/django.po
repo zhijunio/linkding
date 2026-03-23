@@ -106,23 +106,27 @@ msgstr "今天"
 msgid "Yesterday"
 msgstr "昨天"
 
-#: bookmarks/forms.py:231 bookmarks/forms.py:398
+#: bookmarks/forms.py:231 bookmarks/forms.py:399
 msgid "This week"
 msgstr "本周"
 
-#: bookmarks/forms.py:232 bookmarks/forms.py:399
+#: bookmarks/forms.py:232 bookmarks/forms.py:400
+msgid "Last week"
+msgstr "上周"
+
+#: bookmarks/forms.py:233 bookmarks/forms.py:401
 msgid "This month"
 msgstr "本月"
 
-#: bookmarks/forms.py:233 bookmarks/forms.py:400
+#: bookmarks/forms.py:234 bookmarks/forms.py:402
 msgid "This year"
 msgstr "今年"
 
-#: bookmarks/forms.py:234 bookmarks/forms.py:401
+#: bookmarks/forms.py:235 bookmarks/forms.py:403
 msgid "Last 7 days"
 msgstr "最近 7 天"
 
-#: bookmarks/forms.py:235 bookmarks/forms.py:402
+#: bookmarks/forms.py:236 bookmarks/forms.py:404
 msgid "Last 30 days"
 msgstr "最近 30 天"
 
@@ -334,61 +338,63 @@ msgid "Filters"
 msgstr "筛选"
 
 #: bookmarks/templates/bookmarks/bulk_edit_bar.html:15
+msgid "Copy as Markdown"
+msgstr "复制为 Markdown"
+
+#: bookmarks/templates/bookmarks/bulk_edit_bar.html:17
 #: bookmarks/templates/bookmarks/details/modal.html:29
 #: bookmarks/templates/settings/integrations.html:150
 msgid "Delete"
 msgstr "删除"
 
-#: bookmarks/templates/bookmarks/bulk_edit_bar.html:16
+#: bookmarks/templates/bookmarks/bulk_edit_bar.html:18
 msgid "Add tags"
 msgstr "添加标签"
 
-#: bookmarks/templates/bookmarks/bulk_edit_bar.html:17
+#: bookmarks/templates/bookmarks/bulk_edit_bar.html:19
 msgid "Remove tags"
 msgstr "移除标签"
 
-#: bookmarks/templates/bookmarks/bulk_edit_bar.html:18
+#: bookmarks/templates/bookmarks/bulk_edit_bar.html:20
 msgid "Mark as read"
 msgstr "标记为已读"
 
-#: bookmarks/templates/bookmarks/bulk_edit_bar.html:19
+#: bookmarks/templates/bookmarks/bulk_edit_bar.html:21
 #: bookmarks/templates/bookmarks/form.html:61
 msgid "Mark as unread"
 msgstr "标记为未读"
 
-#: bookmarks/templates/bookmarks/bulk_edit_bar.html:21
+#: bookmarks/templates/bookmarks/bulk_edit_bar.html:23
 #: bookmarks/templates/bookmarks/form.html:69
 msgid "Share"
 msgstr "分享"
 
-#: bookmarks/templates/bookmarks/bulk_edit_bar.html:22
+#: bookmarks/templates/bookmarks/bulk_edit_bar.html:24
 msgid "Unshare"
 msgstr "取消分享"
 
-#: bookmarks/templates/bookmarks/bulk_edit_bar.html:24
+#: bookmarks/templates/bookmarks/bulk_edit_bar.html:26
 #: bookmarks/templates/bookmarks/form.html:31
 msgid "Refresh from website"
 msgstr "从网站刷新"
 
-#: bookmarks/templates/bookmarks/bulk_edit_bar.html:25
+#: bookmarks/templates/bookmarks/bulk_edit_bar.html:27
 #: bookmarks/templates/bookmarks/details/assets.html:41
 msgid "Create HTML snapshot"
 msgstr "创建 HTML 快照"
 
-#: bookmarks/templates/bookmarks/bulk_edit_bar.html:28
+#: bookmarks/templates/bookmarks/bulk_edit_bar.html:30
 msgid "Tag names..."
 msgstr "标签名..."
 
-#: bookmarks/templates/bookmarks/bulk_edit_bar.html:35
+#: bookmarks/templates/bookmarks/bulk_edit_bar.html:37
 msgid "Execute"
 msgstr "执行"
 
-#: bookmarks/templates/bookmarks/bulk_edit_bar.html:40
-#, fuzzy
-#| msgid "Bookmarks"
+#: bookmarks/templates/bookmarks/bulk_edit_bar.html:46
 msgid "bookmark"
 msgid_plural "bookmarks"
-msgstr[0] "书签"
+msgstr[0] "个书签"
 
 #: bookmarks/templates/bookmarks/bundle_section.html:5
 #: bookmarks/templates/bundles/index.html:9
@@ -1525,10 +1531,8 @@ msgid "Next"
 msgstr "下一页"
 
 #: bookmarks/templates/tags/edit.html:13
-#, fuzzy
-#| msgid "Edit"
 msgid "Edit Tag"
-msgstr "编辑"
+msgstr "编辑标签"
 
 #: bookmarks/templates/tags/form.html:7
 msgid ""
@@ -1627,14 +1631,10 @@ msgid "The merged tags are deleted"
 msgstr "合并后的标签将被删除"
 
 #: bookmarks/templates/tags/merge.html:28
-#, fuzzy
-#| msgid "Manage tags"
 msgid "Target tag"
 msgstr "目标标签"
 
 #: bookmarks/templates/tags/merge.html:32
-#, fuzzy
-#| msgid "Enter the name of the tag you want to keep"
 msgid ""
 "Enter the name of the tag you want to keep. The tags entered below will be "
 "merged into this one."
@@ -1649,6 +1649,23 @@ msgid ""
 "Enter the names of tags to merge into the target tag, separated by spaces. "
 "These tags will be deleted after merging."
 msgstr "输入要合并到目标标签的标签名称，用空格分隔。合并后这些标签将被删除。"
+
+#: bookmarks/forms.py:176
+msgid "Please enter only one tag name for the target tag."
+msgstr "请仅输入一个目标标签名称。"
+
+#: bookmarks/forms.py:184
+#, python-format
+msgid "Tag \"%(name)s\" does not exist."
+msgstr "标签「%(name)s」不存在。"
+
+#: bookmarks/forms.py:195
+msgid "Please enter at least one tag to merge."
+msgstr "请至少输入一个要合并的标签。"
+
+#: bookmarks/forms.py:209
+msgid "The target tag cannot be selected for merging."
+msgstr "目标标签不能出现在待合并标签中。"
 
 #: bookmarks/utils.py:29
 msgid "Monday"
@@ -1711,6 +1728,15 @@ msgstr "已分享书签 - Linkding"
 #: bookmarks/views/bookmarks.py:161
 msgid "Bookmark details - Linkding"
 msgstr "书签详情 - Linkding"
+
+#: bookmarks/views/bookmarks.py:435
+msgid "No bookmarks selected or found."
+msgstr "未选择书签或找不到书签。"
+
+#: bookmarks/views/bookmarks.py:442
+#, python-format
+msgid "Copied %(count)s bookmark(s) as Markdown."
+msgstr "已复制 %(count)s 个书签为 Markdown。"
 
 #: bookmarks/views/bundles.py:30
 #, python-format

@@ -321,6 +321,12 @@ class BookmarkSearch:
             monday = today - timedelta(days=days_since_monday)
             sunday = monday + timedelta(days=6)
             return monday, sunday
+        if date_filter_relative_string == "last_week":
+            days_since_monday = today.weekday()
+            this_monday = today - timedelta(days=days_since_monday)
+            last_monday = this_monday - timedelta(days=7)
+            last_sunday = last_monday + timedelta(days=6)
+            return last_monday, last_sunday
         if date_filter_relative_string == "this_month":
             first_day = today.replace(day=1)
             _, last_day_num = calendar.monthrange(today.year, today.month)

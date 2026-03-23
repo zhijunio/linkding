@@ -51,13 +51,13 @@
     {% blocktrans %}Limit matches to shared or unshared bookmarks.{% endblocktrans %}
   {% endformhelp %}
 </div>
-<div class="form-footer d-flex mt-4">
+<div class="form-footer form-footer-stacked mt-4">
   <input type="submit"
          name="save"
          value="{% trans 'Save' %}"
          class="btn btn-primary btn-wide">
   <a href="{% url 'linkding:bundles.index' %}"
-     class="btn btn-wide ml-auto">{% trans "Cancel" %}</a>
+     class="btn btn-wide">{% trans "Cancel" %}</a>
   <a href="{% url 'linkding:bundles.preview' %}"
      data-turbo-frame="preview"
      class="d-none"

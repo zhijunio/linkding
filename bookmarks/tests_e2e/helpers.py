@@ -130,6 +130,12 @@ class LinkdingE2ETestCase(LiveServerTestCase, BookmarkFactoryMixin):
     def locate_bulk_edit_toggle(self):
         return self.page.get_by_title("Bulk edit")
 
+    def ensure_bulk_edit_mode(self):
+        """Show bulk edit bar and row checkboxes (on by default; click only if closed)."""
+        bar = self.locate_bulk_edit_bar()
+        if not bar.is_visible():
+            self.locate_bulk_edit_toggle().click()
+
     def select_bulk_action(self, value: str):
         return (
             self.locate_bulk_edit_bar()

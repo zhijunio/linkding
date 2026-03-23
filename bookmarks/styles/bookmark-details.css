@@ -93,20 +93,4 @@
   .status .form-switch {
     margin: 0;
   }
-
-  & .actions {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: nowrap;
-    gap: var(--unit-2);
-
-    & .left-actions,
-    & .right-actions {
-      display: flex;
-      align-items: center;
-      gap: var(--unit-2);
-      flex-shrink: 0;
-    }
-  }
 }

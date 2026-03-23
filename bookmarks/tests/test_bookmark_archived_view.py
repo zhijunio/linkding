@@ -317,6 +317,7 @@ class BookmarkArchivedViewTestCase(
         """,
             html,
         )
+        self.assertContains(response, 'name="bulk_copy_markdown"')
 
     @override_settings(LD_ENABLE_SNAPSHOTS=True)
     def test_allowed_bulk_actions_with_html_snapshot_enabled(self):
