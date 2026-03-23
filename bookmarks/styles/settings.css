@@ -29,4 +29,17 @@
   & .form-group {
     margin-bottom: var(--unit-4);
   }
+
+  /* Bookmark actions: View / Edit / Archive / Remove in one row (wraps on narrow width) */
+  & .bookmark-actions-settings-checkboxes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--unit-2);
+    align-items: center;
+  }
+
+  & .bookmark-actions-settings-checkboxes .form-checkbox {
+    margin-top: 0;
+    margin-bottom: 0;
+  }
 }

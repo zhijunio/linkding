@@ -61,10 +61,12 @@
         </div>
         <div class="form-group">
           <span class="form-label">{% trans "Bookmark actions" %}</span>
-          {% formfield form.display_view_bookmark_action label=_("View") %}
-          {% formfield form.display_edit_bookmark_action label=_("Edit") %}
-          {% formfield form.display_archive_bookmark_action label=_("Archive") %}
-          {% formfield form.display_remove_bookmark_action label=_("Remove") %}
+          <div class="bookmark-actions-settings-checkboxes">
+            {% formfield form.display_view_bookmark_action label=_("View") %}
+            {% formfield form.display_edit_bookmark_action label=_("Edit") %}
+            {% formfield form.display_archive_bookmark_action label=_("Archive") %}
+            {% formfield form.display_remove_bookmark_action label=_("Remove") %}
+          </div>
           <div class="form-input-hint">{% trans "Which actions to display for each bookmark." %}</div>
         </div>
         <div class="form-group">
