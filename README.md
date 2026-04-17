@@ -1,6 +1,6 @@
 <div align="center">
     <br>
-    <a href="https://github.com/chensoul/linkding">
+    <a href="https://github.com/zhijunio/linkding">
         <img src="assets/header.svg" height="50">
     </a>
     <br>
@@ -52,7 +52,7 @@ The full documentation is now available at [linkding.link](https://linkding.link
 
 If you want to contribute to the documentation, you can find the source files in the `docs` folder.
 
-If you want to contribute a community project, feel free to [submit a PR](https://github.com/chensoul/linkding/edit/master/docs/src/content/docs/community.md).
+If you want to contribute a community project, feel free to [submit a PR](https://github.com/zhijunio/linkding/edit/master/docs/src/content/docs/community.md).
 
 ## Contributing
 
@@ -115,7 +115,7 @@ make format
 
 ### DevContainers
 
-This repository also supports DevContainers: [![Open in Remote - Containers](https://img.shields.io/static/v1?label=Remote%20-%20Containers&message=Open&color=blue&logo=visualstudiocode)](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/chensoul/linkding.git)
+This repository also supports DevContainers: [![Open in Remote - Containers](https://img.shields.io/static/v1?label=Remote%20-%20Containers&message=Open&color=blue&logo=visualstudiocode)](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/zhijunio/linkding.git)
 
 Once checked out, only the following commands are required to get started:
 

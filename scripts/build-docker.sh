@@ -11,26 +11,26 @@ plus_platform="linux/amd64"
 # Base image
 docker buildx build --target linkding --platform ${base_platform} \
   -f docker/default.Dockerfile \
-  -t chensoul/linkding:latest \
-  -t chensoul/linkding:$version \
+  -t zhijunio/linkding:latest \
+  -t zhijunio/linkding:$version \
   --push .
 
 docker buildx build --target linkding --platform ${base_platform} \
   -f docker/alpine.Dockerfile \
-  -t chensoul/linkding:latest-alpine \
-  -t chensoul/linkding:$version-alpine \
+  -t zhijunio/linkding:latest-alpine \
+  -t zhijunio/linkding:$version-alpine \
   --push .
 
 # Plus image with support for single-file snapshots
 # Needs checking if this works with ARMv7, excluded for now
 docker buildx build --target linkding-plus --platform ${plus_platform} \
   -f docker/default.Dockerfile \
-  -t chensoul/linkding:latest-plus \
-  -t chensoul/linkding:$version-plus \
+  -t zhijunio/linkding:latest-plus \
+  -t zhijunio/linkding:$version-plus \
   --push .
 
 docker buildx build --target linkding-plus --platform ${plus_platform} \
   -f docker/alpine.Dockerfile \
-  -t chensoul/linkding:latest-plus-alpine \
-  -t chensoul/linkding:$version-plus-alpine \
+  -t zhijunio/linkding:latest-plus-alpine \
+  -t zhijunio/linkding:$version-plus-alpine \
   --push .

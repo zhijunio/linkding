@@ -47,26 +47,26 @@ The Docker image comes in several variants. To use a different image than the de
   </tbody>
 </table>
 
-To install linkding using Docker you can just run the image from either [Docker Hub](https://hub.docker.com/repository/docker/chensoul/linkding) or [GitHub Container Registry](https://github.com/chensoul/linkding/pkgs/container/linkding):
+To install linkding using Docker you can just run the image from either [Docker Hub](https://hub.docker.com/repository/docker/zhijunio/linkding) or [GitHub Container Registry](https://github.com/zhijunio/linkding/pkgs/container/linkding):
 ```shell
 # Using Docker Hub
-docker run --name linkding -p 9090:9090 -v {host-data-folder}:/etc/linkding/data -d chensoul/linkding:latest
+docker run --name linkding -p 9090:9090 -v {host-data-folder}:/etc/linkding/data -d zhijunio/linkding:latest
 
 # Using GitHub Container Registry
-docker run --name linkding -p 9090:9090 -v {host-data-folder}:/etc/linkding/data -d ghcr.io/chensoul/linkding:latest
+docker run --name linkding -p 9090:9090 -v {host-data-folder}:/etc/linkding/data -d ghcr.io/zhijunio/linkding:latest
 ```
 
 In the command above, replace the `{host-data-folder}` placeholder with an absolute path to a folder on your host system where you want to store the linkding database.
 
 If everything completed successfully, the application should now be running and can be accessed at http://localhost:9090.
 
-To upgrade the installation to a new version, remove the existing container, pull the latest version of the linkding Docker image, and then start a new container using the same command that you used above. There is a [shell script](https://github.com/chensoul/linkding/blob/master/install-linkding.sh) available to automate these steps. The script can be configured using environment variables, or you can just modify it.
+To upgrade the installation to a new version, remove the existing container, pull the latest version of the linkding Docker image, and then start a new container using the same command that you used above. There is a [shell script](https://github.com/zhijunio/linkding/blob/master/install-linkding.sh) available to automate these steps. The script can be configured using environment variables, or you can just modify it.
 
 To complete the setup, you still have to [create an initial user](#user-setup), so that you can access your installation.
 
 ##  Using Docker Compose
 
-To install linkding using [Docker Compose](https://docs.docker.com/compose/), you can download the [`docker-compose.yml`](https://github.com/chensoul/linkding/blob/master/docker-compose.yml) file. Also download the [`.env.sample`](https://github.com/chensoul/linkding/blob/master/.env.sample) file, rename it to `.env`, configure the parameters, and then run:
+To install linkding using [Docker Compose](https://docs.docker.com/compose/), you can download the [`docker-compose.yml`](https://github.com/zhijunio/linkding/blob/master/docker-compose.yml) file. Also download the [`.env.sample`](https://github.com/zhijunio/linkding/blob/master/.env.sample) file, rename it to `.env`, configure the parameters, and then run:
 ```shell
 docker-compose up -d
 ```

@@ -23,22 +23,22 @@ jobs:
             file: ./docker/default.Dockerfile
             target: linkding
             suffix: ""
-            cache_ref: ghcr.io/chensoul/linkding:buildcache
+            cache_ref: ghcr.io/zhijunio/linkding:buildcache
           - name: latest-alpine
             file: ./docker/alpine.Dockerfile
             target: linkding
             suffix: -alpine
-            cache_ref: ghcr.io/chensoul/linkding:buildcache-alpine
+            cache_ref: ghcr.io/zhijunio/linkding:buildcache-alpine
           - name: latest-plus
             file: ./docker/default.Dockerfile
             target: linkding-plus
             suffix: -plus
-            cache_ref: ghcr.io/chensoul/linkding:buildcache
+            cache_ref: ghcr.io/zhijunio/linkding:buildcache
           - name: latest-plus-alpine
             file: ./docker/alpine.Dockerfile
             target: linkding-plus
             suffix: -plus-alpine
-            cache_ref: ghcr.io/chensoul/linkding:buildcache-alpine
+            cache_ref: ghcr.io/zhijunio/linkding:buildcache-alpine
     steps:
       - uses: actions/checkout@v4
 
@@ -68,10 +68,10 @@ jobs:
           file: ${{ matrix.file }}
           platforms: linux/amd64,linux/arm64,linux/arm/v7
           tags: |
-            chensoul/linkding:${{ matrix.name }}
-            chensoul/linkding:${{ needs.prepare.outputs.version }}${{ matrix.suffix }}
-            ghcr.io/chensoul/linkding:${{ matrix.name }}
-            ghcr.io/chensoul/linkding:${{ needs.prepare.outputs.version }}${{ matrix.suffix }}
+            zhijunio/linkding:${{ matrix.name }}
+            zhijunio/linkding:${{ needs.prepare.outputs.version }}${{ matrix.suffix }}
+            ghcr.io/zhijunio/linkding:${{ matrix.name }}
+            ghcr.io/zhijunio/linkding:${{ needs.prepare.outputs.version }}${{ matrix.suffix }}
           target: ${{ matrix.target }}
           push: true
           cache-from: type=registry,ref=${{ matrix.cache_ref }}

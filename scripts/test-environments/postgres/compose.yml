@@ -16,7 +16,7 @@ services:
       retries: 5
 
   linkding:
-    image: 'chensoul/linkding:local'
+    image: 'zhijunio/linkding:local'
     environment:
       LD_SUPERUSER_NAME: 'admin'
       LD_SUPERUSER_PASSWORD: 'admin'

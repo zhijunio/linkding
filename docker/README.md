@@ -1,6 +1,6 @@
 # Docker
 
-![img](https://raw.githubusercontent.com/chensoul/linkding/master/assets/header.svg)
+![img](https://raw.githubusercontent.com/zhijunio/linkding/master/assets/header.svg)
 
 ## Introduction
 
@@ -27,11 +27,11 @@ The name comes from:
 - REST API for developing 3rd party apps
 - Admin panel for user self-service and raw data access
 
-**Demo:** <https://linkding.chensoul.cc/>
+**Demo:** <https://linkding.zhijunio.cc/>
 
 **Screenshot:**
 
-![img](https://raw.githubusercontent.com/chensoul/linkding/master/docs/public/linkding-screenshot-zh.png)
+![img](https://raw.githubusercontent.com/zhijunio/linkding/master/docs/public/linkding-screenshot-zh.png)
 
 ### Getting Started
 
@@ -97,7 +97,7 @@ docker run -d \
   --name linkding \
   -p 9090:9090 \
   -v /path/to/data:/etc/linkding/data \
-  chensoul/linkding:latest
+  zhijunio/linkding:latest
 ```
 
 Replace `/path/to/data` with an absolute path to a directory on your host where you want to store the linkding database and files.
@@ -111,7 +111,7 @@ docker run -d \
   -v /path/to/data:/etc/linkding/data \
   -e LD_SUPERUSER_NAME=admin \
   -e LD_SUPERUSER_PASSWORD=your-secure-password \
-  chensoul/linkding:latest
+  zhijunio/linkding:latest
 ```
 
 #### Using Plus Image (with snapshots)
@@ -124,7 +124,7 @@ docker run -d \
   -e LD_SUPERUSER_NAME=admin \
   -e LD_SUPERUSER_PASSWORD=your-secure-password \
   -e LD_ENABLE_SNAPSHOTS=True \
-  chensoul/linkding:latest-plus
+  zhijunio/linkding:latest-plus
 ```
 
 ### Using Docker Compose
@@ -133,8 +133,8 @@ docker run -d \
 
 ```bash
 # Download docker-compose.yml and .env.sample
-curl -O https://raw.githubusercontent.com/chensoul/linkding/master/docker-compose.yml
-curl -O https://raw.githubusercontent.com/chensoul/linkding/master/.env.sample
+curl -O https://raw.githubusercontent.com/zhijunio/linkding/master/docker-compose.yml
+curl -O https://raw.githubusercontent.com/zhijunio/linkding/master/.env.sample
 ```
 
 2. **Configure environment variables:**
@@ -268,7 +268,7 @@ docker stop linkding
 2. **Pull the latest image:**
 
 ```bash
-docker pull chensoul/linkding:latest
+docker pull zhijunio/linkding:latest
 ```
 
 3. **Remove the old container:**
@@ -284,7 +284,7 @@ docker run -d \
   --name linkding \
   -p 9090:9090 \
   -v /path/to/data:/etc/linkding/data \
-  chensoul/linkding:latest
+  zhijunio/linkding:latest
 ```
 
 ### Using Docker Compose
@@ -404,7 +404,7 @@ docker run -d \
   -e LD_DB_USER=linkding \
   -e LD_DB_PASSWORD=your-password \
   --network your-network \
-  chensoul/linkding:latest
+  zhijunio/linkding:latest
 ```
 
 ### Context Path
@@ -444,8 +444,8 @@ This runs all processes under supervisor, enabling better log aggregation.
 
 Pre-built images are available from:
 
-- **Docker Hub:** `chensoul/linkding:latest`
-- **GitHub Container Registry:** `ghcr.io/chensoul/linkding:latest`
+- **Docker Hub:** `zhijunio/linkding:latest`
+- **GitHub Container Registry:** `ghcr.io/zhijunio/linkding:latest`
 
 ### Available Tags
 
@@ -463,5 +463,5 @@ Pre-built images are available from:
 ## Support
 
 - **Documentation:** <https://linkding.link/docs>
-- **GitHub Issues:** <https://github.com/chensoul/linkding/issues>
+- **GitHub Issues:** <https://github.com/zhijunio/linkding/issues>
 - **Community:** <https://linkding.link/community>

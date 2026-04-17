@@ -44,5 +44,5 @@ Common cases that may fail validation:
 If you need to store URLs that don't pass the default validation, you can disable URL validation completely by setting the `LD_DISABLE_URL_VALIDATION` option to `True`. See the [options documentation](/options#ld_disable_url_validation) for how to configure this setting.
 
 Further info:
-- https://github.com/chensoul/linkding/issues/206
+- https://github.com/zhijunio/linkding/issues/206
 - https://code.djangoproject.com/ticket/18517

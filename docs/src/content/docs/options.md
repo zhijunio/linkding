@@ -12,7 +12,7 @@ This document lists the options that linkding can be configured with and explain
 Options are passed as environment variables to the Docker container by using the `-e` argument when using `docker run`. For example:
 
 ```
-docker run --name linkding -p 9090:9090 -d -e LD_DISABLE_URL_VALIDATION=True chensoul/linkding:latest
+docker run --name linkding -p 9090:9090 -d -e LD_DISABLE_URL_VALIDATION=True zhijunio/linkding:latest
 ```
 
 For multiple options, use one `-e` argument per option.

@@ -48,7 +48,7 @@ RUN wget https://www.sqlite.org/${SQLITE_RELEASE_YEAR}/sqlite-amalgamation-${SQL
 
 
 FROM python:3.13.7-alpine3.22 AS linkding
-LABEL org.opencontainers.image.source="https://github.com/chensoul/linkding" \
+LABEL org.opencontainers.image.source="https://github.com/zhijunio/linkding" \
       org.opencontainers.image.title="Linkding" \
       org.opencontainers.image.description="Self-hosted bookmark manager that is designed to be minimal, fast, and easy to set up using Docker. Enhanced with Chinese localization and additional features from linkding-cn. Alpine-based image for smaller size."
 # install runtime dependencies

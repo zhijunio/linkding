@@ -36,7 +36,7 @@ For more info see here: https://paul.kinlan.me/use-bookmarklets-on-chrome-on-and
 
 - Install HTTP Shortcuts from [Play Store](https://play.google.com/store/apps/details?id=ch.rmy.android.http_shortcuts) or [F-Droid](https://f-droid.org/en/packages/ch.rmy.android.http_shortcuts/).
 
-- Copy the URL of [linkding_shortcut.json](https://raw.githubusercontent.com/chensoul/linkding/master/docs/src/assets/linkding_shortcut.json).
+- Copy the URL of [linkding_shortcut.json](https://raw.githubusercontent.com/zhijunio/linkding/master/docs/src/assets/linkding_shortcut.json).
 
 - Open HTTP Shortcuts, tap the 3-dot-button at the top-right corner, tap `Import/Export`, then tap `Import from URL`.
 
@@ -51,7 +51,7 @@ Try using share button on an app, a new item `Send to...` should appear on the s
 This how-to explains how to make use of the app shortcuts iOS app to create a share action that can be used in Safari for adding bookmarks to your linkding instance.
 
 To install the shortcut:
-- Download the [Shortcut](https://raw.githubusercontent.com/chensoul/linkding/master/docs/src/assets/Add%20To%20Linkding.shortcut) on your iOS device
+- Download the [Shortcut](https://raw.githubusercontent.com/zhijunio/linkding/master/docs/src/assets/Add%20To%20Linkding.shortcut) on your iOS device
 - Tap the downloaded file, which brings up the Shortcuts app
 - Confirm that you want to add the shortcut
 - In the shortcut, change `https://linkding.mydomain.com` to the URL of your linkding instance

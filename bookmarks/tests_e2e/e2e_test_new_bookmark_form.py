@@ -147,7 +147,7 @@ class BookmarkFormE2ETestCase(LinkdingE2ETestCase):
         # Open page with URL that should have auto tags
         url = (
             reverse("linkding:bookmarks.new")
-            + "?url=https%3A%2F%2Fgithub.com%2Fchensoul%2Flinkding"
+            + "?url=https%3A%2F%2Fgithub.com%2Fzhijunio%2Flinkding"
         )
         page = self.open(url)
 
