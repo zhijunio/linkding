@@ -25,7 +25,7 @@ RUN apt-get update && apt-get -y install --no-install-recommends \
     build-essential pkg-config libpq-dev libicu-dev libsqlite3-dev libffi-dev wget unzip gettext && \
     rm -rf /var/lib/apt/lists/*
 WORKDIR /etc/linkding
-COPY --from=ghcr.io/astral-sh/uv:0.8.13 /uv /usr/local/bin/uv
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 RUN uv venv /etc/linkding/.venv
 COPY pyproject.toml uv.lock ./
 ENV VIRTUAL_ENV=/etc/linkding/.venv PATH="/etc/linkding/.venv/bin:$PATH"

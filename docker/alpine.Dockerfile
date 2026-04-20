@@ -34,7 +34,7 @@ RUN apk add --no-cache \
     cargo \
     gettext
 WORKDIR /etc/linkding
-COPY --from=ghcr.io/astral-sh/uv:0.8.13 /uv /usr/local/bin/uv
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 RUN uv venv /etc/linkding/.venv
 COPY pyproject.toml uv.lock ./
 ENV VIRTUAL_ENV=/etc/linkding/.venv PATH="/etc/linkding/.venv/bin:$PATH"
