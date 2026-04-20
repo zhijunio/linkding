@@ -1,121 +1,105 @@
+# Build stage: Node.js
 FROM node:22-alpine AS node-build
 WORKDIR /etc/linkding
-# install build dependencies
-COPY rollup.config.mjs postcss.config.js package.json package-lock.json ./
-RUN npm ci
-# copy files needed for JS build
-COPY bookmarks/frontend ./bookmarks/frontend
-COPY bookmarks/styles ./bookmarks/styles
-# run build
+COPY package.json package-lock.json ./
+RUN npm ci && npm cache clean --force
+COPY rollup.config.mjs postcss.config.js ./
+COPY bookmarks/frontend ./bookmarks/frontend/
+COPY bookmarks/styles ./bookmarks/styles/
 RUN npm run build
 
-
-FROM python:3.13.7-alpine3.22 AS build-deps
-# Add required packages
-# alpine-sdk linux-headers pkgconfig: build Python packages from source
-# libpq-dev: build Postgres client from source
-# icu-dev sqlite-dev: build Sqlite ICU extension
-# libffi-dev openssl-dev rust cargo: build Python cryptography from source
-RUN apk update && apk add alpine-sdk linux-headers libpq-dev pkgconfig icu-dev sqlite-dev libffi-dev openssl-dev rust cargo
-WORKDIR /etc/linkding
-# install uv, use installer script for now as distroless images are not availabe for armv7
-ADD https://astral.sh/uv/0.8.13/install.sh /uv-installer.sh
-RUN chmod +x /uv-installer.sh && /uv-installer.sh
-# install python dependencies
-COPY pyproject.toml uv.lock ./
-RUN /root/.local/bin/uv sync --no-dev --group postgres
-
-
-FROM build-deps AS compile-icu
-# Defines SQLite version
-# Since this is only needed for downloading the header files this probably
-# doesn't need to be up-to-date, assuming the SQLite APIs used by the ICU
-# extension do not change
-ARG SQLITE_RELEASE_YEAR=2023
-ARG SQLITE_RELEASE=3430000
-
-# Compile the ICU extension needed for case-insensitive search and ordering
-# with SQLite. This does:
-# - Download SQLite amalgamation for header files
-# - Download ICU extension source file
-# - Compile ICU extension
-RUN wget https://www.sqlite.org/${SQLITE_RELEASE_YEAR}/sqlite-amalgamation-${SQLITE_RELEASE}.zip && \
-    unzip sqlite-amalgamation-${SQLITE_RELEASE}.zip && \
-    cp sqlite-amalgamation-${SQLITE_RELEASE}/sqlite3.h ./sqlite3.h && \
-    cp sqlite-amalgamation-${SQLITE_RELEASE}/sqlite3ext.h ./sqlite3ext.h && \
-    wget https://www.sqlite.org/src/raw/ext/icu/icu.c?name=91c021c7e3e8bbba286960810fa303295c622e323567b2e6def4ce58e4466e60 -O icu.c && \
-    gcc -fPIC -shared icu.c `pkg-config --libs --cflags icu-uc icu-io` -o libicu.so
-
-
-FROM python:3.13.7-alpine3.22 AS linkding
-LABEL org.opencontainers.image.source="https://github.com/zhijunio/linkding" \
-      org.opencontainers.image.title="Linkding" \
-      org.opencontainers.image.description="Self-hosted bookmark manager that is designed to be minimal, fast, and easy to set up using Docker. Enhanced with Chinese localization and additional features from linkding-cn. Alpine-based image for smaller size."
-# install runtime dependencies
-# gettext: required for compiling Django locale files (.po to .mo)
-RUN apk update && apk add bash curl icu libpq mailcap libssl3 gettext
-# create www-data user and group
-RUN set -x ; \
-  addgroup -g 82 -S www-data ; \
-  adduser -u 82 -D -S -G www-data www-data && exit 0 ; exit 1
-WORKDIR /etc/linkding
-# copy python dependencies
-COPY --from=build-deps /etc/linkding/.venv /etc/linkding/.venv
-# copy output from node build
-COPY --from=node-build /etc/linkding/bookmarks/static bookmarks/static/
-# copy compiled icu extension
-COPY --from=compile-icu /etc/linkding/libicu.so libicu.so
-# copy application code
-COPY . .
-# Activate virtual env
-ENV VIRTUAL_ENV=/etc/linkding/.venv
-ENV PATH="/etc/linkding/.venv/bin:$PATH"
-# Generate static files and compile locale files
-RUN mkdir data && \
-    python manage.py collectstatic && \
-    python manage.py compilemessages
-
-# Limit file descriptors used by uwsgi, see https://github.com/sissbruecker/linkding/issues/453
-ENV UWSGI_MAX_FD=4096
-# Expose uwsgi server at port 9090
-EXPOSE 9090
-# Allow running containers as an an arbitrary user in the root group, to support deployment scenarios like OpenShift, Podman
-RUN chmod g+w . && \
-    chmod +x ./bootstrap.sh
-
-HEALTHCHECK --interval=30s --retries=3 --timeout=1s \
-CMD curl -f http://localhost:${LD_SERVER_PORT:-9090}/${LD_CONTEXT_PATH}health || exit 1
-
-CMD ["/bin/bash", "./bootstrap.sh"]
-
-
+# Build stage: uBlock Origin Lite
 FROM node:22-alpine AS ublock-build
 WORKDIR /etc/linkding
-# Pin uBOL version to avoid GitHub API rate limits during build
 ARG UBOL_TAG=2026.308.1810
-# Install necessary tools; download and unzip uBlock Origin Lite
-# Patch manifest to enable annoyances by default
 RUN apk add --no-cache curl jq unzip && \
-    DOWNLOAD_URL=https://github.com/uBlockOrigin/uBOL-home/releases/download/${UBOL_TAG}/uBOLite_${UBOL_TAG}.chromium.zip && \
-    echo "Downloading $DOWNLOAD_URL" && \
-    curl -L -o uBOLite.zip "$DOWNLOAD_URL" && \
-    unzip uBOLite.zip -d uBOLite.chromium.mv3 && \
-    rm uBOLite.zip && \
+    curl -sL -o uBOLite.zip https://github.com/uBlockOrigin/uBOL-home/releases/download/${UBOL_TAG}/uBOLite_${UBOL_TAG}.chromium.zip && \
+    unzip -q uBOLite.zip -d uBOLite.chromium.mv3 && rm uBOLite.zip && \
     jq '.declarative_net_request.rule_resources |= map(if .id == "annoyances-overlays" or .id == "annoyances-cookies" or .id == "annoyances-social" or .id == "annoyances-widgets" or .id == "annoyances-others" then .enabled = true else . end)' \
-        uBOLite.chromium.mv3/manifest.json > temp.json && \
-    mv temp.json uBOLite.chromium.mv3/manifest.json
+        uBOLite.chromium.mv3/manifest.json > temp.json && mv temp.json uBOLite.chromium.mv3/manifest.json && \
+    rm -rf /var/cache/apk/*
 
+# Build stage: Python dependencies
+FROM python:3.13.7-alpine3.22 AS build-deps
+RUN apk add --no-cache \
+    alpine-sdk \
+    linux-headers \
+    libpq-dev \
+    pkgconfig \
+    icu-dev \
+    sqlite-dev \
+    libffi-dev \
+    openssl-dev \
+    rust \
+    cargo \
+    gettext
+WORKDIR /etc/linkding
+COPY --from=ghcr.io/astral-sh/uv:0.8.13 /uv /usr/local/bin/uv
+RUN uv venv /etc/linkding/.venv
+COPY pyproject.toml uv.lock ./
+ENV VIRTUAL_ENV=/etc/linkding/.venv PATH="/etc/linkding/.venv/bin:$PATH"
+RUN uv sync --no-dev --group postgres --no-cache
 
-FROM linkding AS linkding-plus
-# install node, chromium
-RUN apk update && apk add nodejs npm chromium-swiftshader
-# install single-file-cli
-RUN npm install -g single-file-cli@2.0.75
-# copy uBlock
+# Build stage: ICU extension
+FROM build-deps AS compile-icu
+ARG SQLITE_RELEASE_YEAR=2023
+ARG SQLITE_RELEASE=3430000
+RUN wget -q https://www.sqlite.org/${SQLITE_RELEASE_YEAR}/sqlite-amalgamation-${SQLITE_RELEASE}.zip && \
+    unzip -q sqlite-amalgamation-${SQLITE_RELEASE}.zip && \
+    cp sqlite-amalgamation-${SQLITE_RELEASE}/sqlite3.h . && \
+    cp sqlite-amalgamation-${SQLITE_RELEASE}/sqlite3ext.h . && \
+    wget -q "https://www.sqlite.org/src/raw/ext/icu/icu.c?name=91c021c7e3e8bbba286960810fa303295c622e323567b2e6def4ce58e4466e60" -O icu.c && \
+    gcc -O3 -fPIC -shared icu.c `pkg-config --libs --cflags icu-uc icu-io` -o libicu.so && \
+    rm -f sqlite-amalgamation-${SQLITE_RELEASE}.zip && rm -rf sqlite-amalgamation-${SQLITE_RELEASE} icu.c
+
+# Runtime stage: linkding-plus base
+FROM build-deps AS linkding-plus-base
+RUN apk add --no-cache \
+    bash curl icu libpq mailcap libssl3 gettext nodejs npm chromium-swiftshader && \
+    npm install -g single-file-cli@2.0.75 && \
+    addgroup -g 82 -S www-data 2>/dev/null || true && \
+    adduser -u 82 -D -S -G www-data www-data 2>/dev/null || true && \
+    mkdir -p chromium-profile && chown -R www-data:www-data chromium-profile && \
+    rm -rf /var/cache/apk/*
+ENV VIRTUAL_ENV=/etc/linkding/.venv PATH="/etc/linkding/.venv/bin:$PATH" LD_ENABLE_SNAPSHOTS=True
+
+# Build stage: Static files and translations
+FROM build-deps AS static-build
+COPY --from=compile-icu /etc/linkding/libicu.so .
+COPY --from=node-build /etc/linkding/bookmarks/static bookmarks/static/
+COPY . .
+ENV VIRTUAL_ENV=/etc/linkding/.venv PATH="/etc/linkding/.venv/bin:$PATH"
+RUN mkdir -p data && python manage.py collectstatic --noinput && python manage.py compilemessages
+
+# Final stage: linkding (standard)
+FROM python:3.13.7-alpine3.22 AS linkding
+RUN apk add --no-cache \
+    bash curl icu libpq mailcap libssl3 gettext && \
+    addgroup -g 82 -S www-data && adduser -u 82 -D -S -G www-data www-data || true && \
+    rm -rf /var/cache/apk/*
+WORKDIR /etc/linkding
+COPY --from=build-deps /etc/linkding/.venv .venv/
+COPY --from=static-build /etc/linkding/libicu.so .
+COPY --from=static-build /etc/linkding/data ./data/
+COPY --from=static-build /etc/linkding/bookmarks/static bookmarks/static/
+COPY --from=static-build /etc/linkding/bookmarks/locale bookmarks/locale/
+COPY --from=static-build /etc/linkding/manage.py .
+COPY --from=static-build /etc/linkding/bootstrap.sh .
+COPY --from=static-build /etc/linkding/*.py .
+COPY --from=static-build /etc/linkding/*.conf .
+HEALTHCHECK --interval=30s --retries=3 --timeout=1s CMD curl -f http://localhost:${LD_SERVER_PORT:-9090}/${LD_CONTEXT_PATH}health || exit 1
+CMD ["/bin/bash", "./bootstrap.sh"]
+
+# Final stage: linkding-plus (with Chromium)
+FROM linkding-plus-base AS linkding-plus
+COPY --from=static-build /etc/linkding/libicu.so .
+COPY --from=static-build /etc/linkding/data ./data/
+COPY --from=static-build /etc/linkding/bookmarks/static bookmarks/static/
+COPY --from=static-build /etc/linkding/bookmarks/locale bookmarks/locale/
 COPY --from=ublock-build /etc/linkding/uBOLite.chromium.mv3 uBOLite.chromium.mv3/
-# create chromium profile folder for user running background tasks and set permissions
-RUN mkdir -p chromium-profile &&  \
-    chown -R www-data:www-data chromium-profile &&  \
-    chown -R www-data:www-data uBOLite.chromium.mv3
-# enable snapshot support
-ENV LD_ENABLE_SNAPSHOTS=True
+COPY --from=static-build /etc/linkding/manage.py .
+COPY --from=static-build /etc/linkding/bootstrap.sh .
+COPY --from=static-build /etc/linkding/*.py .
+COPY --from=static-build /etc/linkding/*.conf .
+HEALTHCHECK --interval=30s --retries=3 --timeout=1s CMD curl -f http://localhost:${LD_SERVER_PORT:-9090}/${LD_CONTEXT_PATH}health || exit 1
+CMD ["/bin/bash", "./bootstrap.sh"]

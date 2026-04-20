@@ -2,18 +2,12 @@ name: build
 
 on: workflow_dispatch
 
-jobs:
-  prepare:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - id: get_version
-        run: echo "version=$(cat version.txt)" >> $GITHUB_OUTPUT
-    outputs:
-      version: ${{ steps.get_version.outputs.version }}
+env:
+  DOCKER_BUILDKIT: 1
+  BUILDKIT_PROGRESS: plain
 
+jobs:
   build:
-    needs: prepare
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -22,25 +16,34 @@ jobs:
           - name: latest
             file: ./docker/default.Dockerfile
             target: linkding
-            suffix: ""
-            cache_ref: ghcr.io/zhijunio/linkding:buildcache
+            platforms: linux/amd64,linux/arm64
+            version_suffix: ""
+            cache_id: debian
           - name: latest-alpine
             file: ./docker/alpine.Dockerfile
             target: linkding
-            suffix: -alpine
-            cache_ref: ghcr.io/zhijunio/linkding:buildcache-alpine
+            platforms: linux/amd64,linux/arm64,linux/arm/v7
+            version_suffix: -alpine
+            cache_id: alpine
           - name: latest-plus
             file: ./docker/default.Dockerfile
             target: linkding-plus
-            suffix: -plus
-            cache_ref: ghcr.io/zhijunio/linkding:buildcache
+            platforms: linux/amd64,linux/arm64
+            version_suffix: -plus
+            cache_id: debian
           - name: latest-plus-alpine
             file: ./docker/alpine.Dockerfile
             target: linkding-plus
-            suffix: -plus-alpine
-            cache_ref: ghcr.io/zhijunio/linkding:buildcache-alpine
+            platforms: linux/amd64,linux/arm64,linux/arm/v7
+            version_suffix: -plus-alpine
+            cache_id: alpine
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Get version
+        id: get_version
+        run: echo "version=$(cat version.txt)" >> $GITHUB_OUTPUT
 
       - name: Login to Docker Hub
         uses: docker/login-action@v3
@@ -55,24 +58,32 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ github.token }}
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+        with:
+          driver: docker-container
+          buildkitd-config-inline: |
+            [worker.oci]
+              max-parallelism = 8
 
       - name: Build and push ${{ matrix.name }}
         uses: docker/build-push-action@v6
         with:
           context: .
           file: ${{ matrix.file }}
-          platforms: linux/amd64,linux/arm64,linux/arm/v7
+          platforms: ${{ matrix.platforms }}
           tags: |
             zhijunio/linkding:${{ matrix.name }}
-            zhijunio/linkding:${{ needs.prepare.outputs.version }}${{ matrix.suffix }}
+            zhijunio/linkding:${{ steps.get_version.outputs.version }}${{ matrix.version_suffix }}
             ghcr.io/zhijunio/linkding:${{ matrix.name }}
-            ghcr.io/zhijunio/linkding:${{ needs.prepare.outputs.version }}${{ matrix.suffix }}
+            ghcr.io/zhijunio/linkding:${{ steps.get_version.outputs.version }}${{ matrix.version_suffix }}
           target: ${{ matrix.target }}
           push: true
-          cache-from: type=registry,ref=${{ matrix.cache_ref }}
-          cache-to: type=registry,ref=${{ matrix.cache_ref }},mode=max
+          provenance: false
+          # Use both GHA cache (fast) and registry cache (persistent)
+          cache-from: |
+            type=gha,scope=${{ matrix.cache_id }}
+            type=registry,ref=ghcr.io/zhijunio/linkding:buildcache-${{ matrix.cache_id }}
+          cache-to: |
+            type=gha,scope=${{ matrix.cache_id }},mode=max
+            type=registry,ref=ghcr.io/zhijunio/linkding:buildcache-${{ matrix.cache_id }},mode=max

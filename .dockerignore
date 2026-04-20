@@ -3,7 +3,6 @@
 
 # Include files required for build or at runtime
 !/bookmarks
-
 !/bootstrap.sh
 !/LICENSE.txt
 !/manage.py
@@ -18,5 +17,24 @@
 !/uwsgi.ini
 !/version.txt
 
- # Remove dev settings
+# Remove dev settings
 /bookmarks/settings/dev.py
+
+# Exclude build artifacts and caches
+**/node_modules
+**/.venv
+**/__pycache__
+**/*.pyc
+/data
+/static
+**/.git
+**/.github
+**/*.md
+docker/*.md
+scripts/
+bookmarks/tests/
+bookmarks/tests_e2e/
+**/.pytest_cache/
+**/*.sqlite3
+**/coverage.xml
+**/htmlcov/

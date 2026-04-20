@@ -17,26 +17,23 @@ const excludeDevTool = {
 export default {
   input: 'bookmarks/frontend/index.js',
   output: {
-    sourcemap: true,
+    sourcemap: production,
     format: 'iife',
     name: 'linkding',
-    // Generate bundle in static folder to that it is picked up by Django static files finder
     file: 'bookmarks/static/bundle.js',
   },
   plugins: [
     excludeDevTool,
-    // If you have external dependencies installed from
-    // npm, you'll most likely need these plugins. In
-    // some cases you'll need additional configuration —
-    // consult the documentation for details:
-    // https://github.com/rollup/rollup-plugin-commonjs
     resolve({
       browser: true,
     }),
-
-    // If we're building for production (npm run build
-    // instead of npm run dev), minify
-    production && terser(),
+    production && terser({
+      format: { comments: false },
+      compress: {
+        drop_console: true,
+        drop_debugger: true,
+      },
+    }),
   ],
   watch: {
     clearScreen: false,
