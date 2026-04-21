@@ -3,49 +3,96 @@ name: build-all
 on:
   workflow_dispatch:
 
+env:
+  DOCKER_BUILDKIT: 1
+  BUILDKIT_PROGRESS: plain
+  SOURCE_DATE_EPOCH: "1704067200"
+
 jobs:
-  # First build and push base images (only if changed)
-  check-base:
-    runs-on: ubuntu-latest
-    outputs:
-      debian: ${{ steps.changes.outputs.debian }}
-      alpine: ${{ steps.changes.outputs.alpine }}
+  build:
+    runs-on: ubuntu-24.04-8-cores
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: latest
+            file: ./docker/default.Dockerfile
+            target: linkding
+            platforms: linux/amd64,linux/arm64
+            version_suffix: ""
+          - name: latest-plus
+            file: ./docker/default.Dockerfile
+            target: linkding-plus
+            platforms: linux/amd64,linux/arm64
+            version_suffix: -plus
+          - name: latest-alpine
+            file: ./docker/alpine.Dockerfile
+            target: linkding
+            platforms: linux/amd64,linux/arm64
+            version_suffix: -alpine
+          - name: latest-plus-alpine
+            file: ./docker/alpine.Dockerfile
+            target: linkding-plus
+            platforms: linux/amd64,linux/arm64
+            version_suffix: -plus-alpine
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Check for base image changes
-        id: changes
-        uses: dorny/paths-filter@v3
+
+      - name: Get version
+        id: get_version
+        run: echo "version=$(cat version.txt)" >> $GITHUB_OUTPUT
+
+      - name: Login to registries
+        uses: docker/login-action@v3
         with:
-          filters: |
-            debian:
-              - 'docker/base-debian.Dockerfile'
-              - 'docker/base-alpine.Dockerfile'
-              - 'pyproject.toml'
-              - 'uv.lock'
-            alpine:
-              - 'docker/base-debian.Dockerfile'
-              - 'docker/base-alpine.Dockerfile'
-              - 'pyproject.toml'
-              - 'uv.lock'
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
 
-  build-base-debian:
-    needs: check-base
-    if: needs.check-base.outputs.debian == 'true'
-    uses: ./.github/workflows/build-base-debian.yaml
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: linux/amd64,linux/arm64
+          persistent: true
 
-  build-base-alpine:
-    needs: check-base
-    if: needs.check-base.outputs.alpine == 'true'
-    uses: ./.github/workflows/build-base-alpine.yaml
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver: docker-container
+          cache-binary: true
+          driver-opts: |
+            image=moby/buildkit:latest
+            network=host
+          buildkitd-config-inline: |
+            [worker.oci]
+              max-parallelism = 8
+              gc-keepstorage=10240
+            [gc]
+              enabled=true
+              policyKeepTime=4320m
 
-  # Build main images in parallel
-  debian:
-    needs: [build-base-debian, check-base]
-    if: always() && (needs.build-base-debian.result == 'success' || needs.build-base-debian.result == 'skipped')
-    uses: ./.github/workflows/build-debian.yaml
-
-  alpine:
-    needs: [build-base-alpine, check-base]
-    if: always() && (needs.build-base-alpine.result == 'success' || needs.build-base-alpine.result == 'skipped')
-    uses: ./.github/workflows/build-alpine.yaml
+      - name: Build and push ${{ matrix.name }}
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ matrix.file }}
+          platforms: ${{ matrix.platforms }}
+          tags: |
+            zhijunio/linkding:${{ matrix.name }}
+            zhijunio/linkding:${{ steps.get_version.outputs.version }}${{ matrix.version_suffix }}
+            ghcr.io/zhijunio/linkding:${{ matrix.name }}
+            ghcr.io/zhijunio/linkding:${{ steps.get_version.outputs.version }}${{ matrix.version_suffix }}
+          target: ${{ matrix.target }}
+          push: true
+          provenance: false
+          sbom: false
+          cache-from: |
+            type=gha,scope=${{ matrix.name }}
+          cache-to: |
+            type=gha,scope=${{ matrix.name }},mode=max

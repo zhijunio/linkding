@@ -22,45 +22,35 @@ RUN --mount=type=cache,target=/var/cache/apk,id=ublock-apk \
         uBOLite.chromium.mv3/manifest.json > temp.json && mv temp.json uBOLite.chromium.mv3/manifest.json && \
     rm -rf /var/cache/apk/*
 
-# Use pre-built base image (Python + uv + dependencies + ICU)
-# See: .github/workflows/build-base.yaml
-FROM ghcr.io/zhijunio/linkding:base-debian AS base
-
-# Build stage: Static files and translations
-FROM base AS static-build
-WORKDIR /etc/linkding
-COPY --from=node-build /etc/linkding/bookmarks/static bookmarks/static/
-COPY bookmarks/*.py ./bookmarks/
-COPY bookmarks/management bookmarks/management/
-COPY bookmarks/templates bookmarks/templates/
-COPY bookmarks/settings bookmarks/settings/
-COPY bookmarks/urls.py bookmarks/migrations.py ./bookmarks/
-COPY locale ./locale/
-COPY requirements.txt pyproject.toml uv.lock manage.py bootstrap.sh ./
-COPY *.conf .
-RUN mkdir -p data && python manage.py collectstatic --noinput && python manage.py compilemessages
-
-# Final stage: linkding (Debian)
-FROM python:3.13.7-slim-trixie AS linkding
+# Build stage: Python dependencies (Debian)
+FROM python:3.13.7-slim-trixie AS build-deps
 RUN apt-get update && apt-get -y install --no-install-recommends \
-    media-types libpq-dev libicu-dev libssl3t64 curl gettext && \
-    adduser --system --group --uid 82 www-data || true && \
+    build-essential pkg-config libpq-dev libicu-dev libsqlite3-dev libffi-dev wget unzip gettext curl && \
     rm -rf /var/lib/apt/lists/*
 WORKDIR /etc/linkding
-COPY --from=base /venv .venv/
-COPY --from=base /libicu.so .
-COPY --from=static-build /etc/linkding/data ./data/
-COPY --from=static-build /etc/linkding/bookmarks/static bookmarks/static/
-COPY --from=static-build /etc/linkding/bookmarks/locale bookmarks/locale/
-COPY --from=static-build /etc/linkding/manage.py .
-COPY --from=static-build /etc/linkding/bootstrap.sh .
-COPY --from=static-build /etc/linkding/*.py .
-COPY --from=static-build /etc/linkding/*.conf .
-HEALTHCHECK --interval=30s --retries=3 --timeout=1s CMD curl -f http://localhost:${LD_SERVER_PORT:-9090}/${LD_CONTEXT_PATH}health || exit 1
-CMD ["/bin/bash", "./bootstrap.sh"]
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh && \
+    cp /root/.local/bin/uv /usr/local/bin/uv
+RUN uv venv /etc/linkding/.venv
+COPY pyproject.toml uv.lock ./
+ENV VIRTUAL_ENV=/etc/linkding/.venv PATH="/etc/linkding/.venv/bin:$PATH"
+RUN --mount=type=cache,target=/root/.cache/uv,id=uv-cache \
+    uv sync --no-dev --group postgres
+
+# Build stage: ICU extension
+FROM build-deps AS compile-icu
+ARG SQLITE_RELEASE_YEAR=2023
+ARG SQLITE_RELEASE=3430000
+RUN --mount=type=cache,target=/var/cache/apt,id=apt-cache \
+    wget -q https://www.sqlite.org/${SQLITE_RELEASE_YEAR}/sqlite-amalgamation-${SQLITE_RELEASE}.zip && \
+    unzip -q sqlite-amalgamation-${SQLITE_RELEASE}.zip && \
+    cp sqlite-amalgamation-${SQLITE_RELEASE}/sqlite3.h . && \
+    cp sqlite-amalgamation-${SQLITE_RELEASE}/sqlite3ext.h . && \
+    wget -q "https://www.sqlite.org/src/raw/ext/icu/icu.c?name=91c021c7e3e8bbba286960810fa303295c622e323567b2e6def4ce58e4466e60" -O icu.c && \
+    gcc -O3 -fPIC -shared icu.c `pkg-config --libs --cflags icu-uc icu-io` -o libicu.so && \
+    rm -f sqlite-amalgamation-${SQLITE_RELEASE}.zip && rm -rf sqlite-amalgamation-${SQLITE_RELEASE} icu.c
 
 # Runtime stage: linkding-plus base (Debian)
-FROM python:3.13.7-slim-trixie AS linkding-plus-base
+FROM build-deps AS linkding-plus-base
 RUN apt-get update && apt-get -y install --no-install-recommends \
     media-types libpq-dev libicu-dev libssl3t64 curl gettext chromium && \
     curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /usr/share/keyrings/nodesource.gpg && \
@@ -71,13 +61,45 @@ RUN apt-get update && apt-get -y install --no-install-recommends \
     chown -R www-data:www-data chromium-profile 2>/dev/null || true
 RUN --mount=type=cache,target=/root/.npm,id=npm-global \
     npm install -g single-file-cli@2.0.75
-ENV VIRTUAL_ENV=/venv PATH="/venv/bin:$PATH" LD_ENABLE_SNAPSHOTS=True NPM_CONFIG_CACHE=/tmp/npm-cache
-COPY --from=base /venv .venv/
+ENV VIRTUAL_ENV=/etc/linkding/.venv PATH="/etc/linkding/.venv/bin:$PATH" LD_ENABLE_SNAPSHOTS=True NPM_CONFIG_CACHE=/tmp/npm-cache
+
+# Build stage: Static files and translations
+FROM build-deps AS static-build
+COPY --from=compile-icu /etc/linkding/libicu.so .
+COPY --from=node-build /etc/linkding/bookmarks/static bookmarks/static/
+COPY bookmarks/*.py ./bookmarks/
+COPY bookmarks/management bookmarks/management/
+COPY bookmarks/templates bookmarks/templates/
+COPY bookmarks/settings bookmarks/settings/
+COPY bookmarks/urls.py bookmarks/migrations.py ./bookmarks/
+COPY locale ./locale/
+COPY requirements.txt pyproject.toml uv.lock manage.py bootstrap.sh ./
+COPY *.conf .
+ENV VIRTUAL_ENV=/etc/linkding/.venv PATH="/etc/linkding/.venv/bin:$PATH"
+RUN mkdir -p data && python manage.py collectstatic --noinput && python manage.py compilemessages
+
+# Final stage: linkding (Debian)
+FROM python:3.13.7-slim-trixie AS linkding
+RUN apt-get update && apt-get -y install --no-install-recommends \
+    media-types libpq-dev libicu-dev libssl3t64 curl gettext && \
+    adduser --system --group --uid 82 www-data || true && \
+    rm -rf /var/lib/apt/lists/*
+WORKDIR /etc/linkding
+COPY --from=build-deps /etc/linkding/.venv .venv/
+COPY --from=static-build /etc/linkding/libicu.so .
+COPY --from=static-build /etc/linkding/data ./data/
+COPY --from=static-build /etc/linkding/bookmarks/static bookmarks/static/
+COPY --from=static-build /etc/linkding/bookmarks/locale bookmarks/locale/
+COPY --from=static-build /etc/linkding/manage.py .
+COPY --from=static-build /etc/linkding/bootstrap.sh .
+COPY --from=static-build /etc/linkding/*.py .
+COPY --from=static-build /etc/linkding/*.conf .
+HEALTHCHECK --interval=30s --retries=3 --timeout=1s CMD curl -f http://localhost:${LD_SERVER_PORT:-9090}/${LD_CONTEXT_PATH}health || exit 1
+CMD ["/bin/bash", "./bootstrap.sh"]
 
 # Final stage: linkding-plus (Debian)
 FROM linkding-plus-base AS linkding-plus
-WORKDIR /etc/linkding
-COPY --from=base /libicu.so .
+COPY --from=static-build /etc/linkding/libicu.so .
 COPY --from=static-build /etc/linkding/data ./data/
 COPY --from=static-build /etc/linkding/bookmarks/static bookmarks/static/
 COPY --from=static-build /etc/linkding/bookmarks/locale bookmarks/locale/
