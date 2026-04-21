@@ -52,7 +52,7 @@ jobs:
       - name: Setup Python environment
         run: |
           uv sync
-          uv run playwright install chromium
+          uv run playwright install --with-deps chromium
           mkdir data
       - name: Run build
         run: |
