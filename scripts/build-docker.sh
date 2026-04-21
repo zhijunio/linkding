@@ -34,3 +34,9 @@ docker build --target linkding-plus --platform $PLATFORM \
 echo ""
 echo "Build completed! Images:"
 docker images zhijunio/linkding --format "{{.Repository}}:{{.Tag}} - {{.Size}}" | grep -v test
+
+echo ""
+echo "Note: Local builds use Docker's default caching."
+echo "For faster rebuilds when dependencies change, consider:"
+echo "  1. Building base images: docker build -f docker/base-debian.Dockerfile --target build-deps -t zhijunio/linkding:base-debian ."
+echo "  2. Using BuildKit mount caching (requires BUILDKIT_PROGRESS=plain)"
