@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
 
-uv run coverage erase
-uv run coverage run manage.py test
-uv run coverage report --sort=cover
+uv run python -m coverage erase
+uv run python -m coverage run manage.py test
+uv run python -m coverage report --sort=cover

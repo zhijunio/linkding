@@ -13,7 +13,7 @@ tasks:
 	uv run manage.py run_huey
 
 test:
-	uv run pytest -n auto
+	uv run python -m pytest -n auto
 
 lint:
 	uv run ruff check bookmarks
@@ -25,7 +25,7 @@ format:
 	npx prettier bookmarks/styles --write
 
 prepare-e2e:
-	uv run playwright install chromium
+	uv run python -m playwright install chromium
 	rm -rf static
 	npm run build
 	uv run manage.py collectstatic --no-input
