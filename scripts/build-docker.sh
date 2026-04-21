@@ -5,6 +5,15 @@ export DOCKER_BUILDKIT=1
 export BUILDKIT_PROGRESS=plain
 export SOURCE_DATE_EPOCH="1704067200"
 
+# Docker mirror for users in China (optional)
+# Usage: DOCKER_MIRROR=1 ./scripts/build-docker.sh
+if [ "${DOCKER_MIRROR:-}" = "1" ]; then
+  # Use dockerhub.icu as mirror proxy
+  # Configure in /etc/docker/daemon.json:
+  #   {"registry-mirrors": ["https://dockerhub.icu"]}
+  echo "Note: Set DOCKER_MIRROR=1 and configure /etc/docker/daemon.json with registry-mirrors"
+fi
+
 version=$(<version.txt)
 
 # Local build uses linux/amd64 only. For multi-arch builds, use GitHub Actions.
@@ -20,8 +29,6 @@ if [ -n "$USERNAME" ] && [ -n "$PASSWORD" ]; then
   echo "Logging in to $REGISTRY..."
   echo "$PASSWORD" | docker login "$REGISTRY" -u "$USERNAME" --password-stdin
 fi
-
-# Push mode: always push images
 
 echo "Building Debian images..."
 docker buildx build --platform $PLATFORM \
@@ -69,5 +76,8 @@ echo ""
 echo "Build completed!"
 echo ""
 echo "Note: BuildKit local cache is stored in /tmp/.buildx-cache-*"
-echo "      Set DOCKER_USERNAME and DOCKER_PASSWORD to push images."
 echo "      Set PLATFORM=linux/amd64,linux/arm64 for multi-arch builds."
+echo ""
+echo "China users: Configure Docker mirror in /etc/docker/daemon.json:"
+echo '  {"registry-mirrors": ["https://dockerhub.icu"]}'
+echo "Then restart Docker: sudo systemctl restart docker"
