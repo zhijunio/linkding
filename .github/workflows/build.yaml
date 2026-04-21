@@ -71,7 +71,7 @@ jobs:
             network=host
           buildkitd-config-inline: |
             [worker.oci]
-              max-parallelism = 8
+              max-parallelism = 4
               gc-keepstorage=10240
             [gc]
               enabled=true
