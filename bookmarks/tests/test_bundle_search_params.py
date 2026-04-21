@@ -19,12 +19,12 @@ class BundleSearchParamsTestCase(TestCase, BookmarkFactoryMixin):
         from django.utils import timezone
 
         now = timezone.now()
-        old = self.setup_bookmark(
+        self.setup_bookmark(
             user=self.user,
             title="Old",
             added=now - timedelta(days=10),
         )
-        recent = self.setup_bookmark(user=self.user, title="Recent")
+        self.setup_bookmark(user=self.user, title="Recent")
         bundle = self.setup_bundle(
             user=self.user,
             search="",
@@ -41,8 +41,8 @@ class BundleSearchParamsTestCase(TestCase, BookmarkFactoryMixin):
 
     def test_bundle_search_params_tagged_untagged(self):
         """Bundle search_params tagged=no filters for bookmarks with no tags."""
-        tagged = self.setup_bookmark(user=self.user, tags=[self.setup_tag()])
-        untagged = self.setup_bookmark(user=self.user, title="No tags")
+        self.setup_bookmark(user=self.user, tags=[self.setup_tag()])
+        self.setup_bookmark(user=self.user, title="No tags")
         bundle = self.setup_bundle(
             user=self.user,
             search="",
@@ -55,8 +55,8 @@ class BundleSearchParamsTestCase(TestCase, BookmarkFactoryMixin):
 
     def test_bundle_filter_unread_backward_compat(self):
         """filter_unread still works when search_params empty."""
-        unread = self.setup_bookmark(user=self.user, unread=True)
-        read = self.setup_bookmark(user=self.user, unread=False, title="Read")
+        self.setup_bookmark(user=self.user, unread=True)
+        self.setup_bookmark(user=self.user, unread=False, title="Read")
         bundle = self.setup_bundle(
             user=self.user,
             search="",

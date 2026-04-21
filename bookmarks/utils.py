@@ -7,7 +7,6 @@ from dataclasses import dataclass
 
 from django.conf import settings
 from django.http import HttpResponseRedirect
-from django.template.defaultfilters import pluralize
 from django.utils import formats, timezone
 from django.utils.translation import gettext, ngettext
 

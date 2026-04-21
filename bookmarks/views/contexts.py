@@ -3,11 +3,11 @@ import urllib.parse
 
 from django.conf import settings
 from django.core.paginator import Paginator
-from django.utils.translation import gettext, gettext_lazy
 from django.db import models
 from django.http import Http404
 from django.urls import reverse
-from pypinyin import lazy_pinyin, Style
+from django.utils.translation import gettext, gettext_lazy
+from pypinyin import Style, lazy_pinyin
 
 from bookmarks import queries, utils
 from bookmarks.forms import BookmarkSearchForm
